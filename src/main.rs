@@ -1,5 +1,6 @@
 use std::env;
 use std::fs;
+use itertools::Itertools;
 
 enum Instruction{
     CLEAR,        //000
@@ -31,8 +32,17 @@ impl Instruction {
 }
 
 //take a line, parse the relevant symbols/words, return the instruction it represents
+//instructions are newline-seperated, and of format label: instruction opcode ; comment
 fn parseline(line:&str) -> Instruction{
-    return Instruction::CLEAR;
+    let strip_comment: &str = line.splitn(2,";").collect::<Vec<&str>>()[0];
+    if strip_comment.contains(":"){
+        let instruction = strip_comment.splitn(2,":").collect::<Vec<&str>>()[1];
+        let label = 
+    }else{
+        let instruction = strip_comment.splitn(2,":").collect::<Vec<&str>>()[0];
+    }
+    
+    Instruction::CLEAR
 }
 
 fn main() {
@@ -40,10 +50,9 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let filename: &String = &args[1];
     let filetext: String = fs::read_to_string(filename).expect("File Error");
-    let lines = filetext.split('\n');
 
     let mut lineno: isize = 0;
-    for line in lines{
+    for line in filetext.lines(){
         let instr: Instruction = parseline(line);
     }
    
