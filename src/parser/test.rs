@@ -83,3 +83,31 @@ fn parse_line_blanks() {
         Err(ParseError::Blank)
     );
 }
+
+//make sure we get the right errors
+#[test]
+fn parse_line_errors() {
+    assert_eq!(
+        parse_line("ABC", 0, &mut HashMap::new()),
+        Err(ParseError::err("Invalid opcode"))
+    );
+    assert_eq!(
+        parse_line("DEC 12", 0, &mut HashMap::new()),
+        Err(ParseError::err("No operand expected here"))
+    );
+    assert_eq!(
+        parse_line("DEC 12; INC", 0, &mut HashMap::new()),
+        Err(ParseError::err("No operand expected here"))
+    );
+    assert_eq!(
+        parse_line("STORE 12 INC", 0, &mut HashMap::new()),
+        Err(ParseError::err("Too many operands"))
+    );
+    assert_eq!(
+        parse_line("ADD x ;", 0, &mut HashMap::new()),
+        Err(ParseError::err("Could not parse operand"))
+    );
+}
+
+#[test]
+fn parse_line_labels() {}

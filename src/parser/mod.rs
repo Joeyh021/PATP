@@ -8,6 +8,12 @@ pub enum ParseError {
     Error(String),
 }
 
+impl ParseError {
+    fn err(err: &str) -> Self {
+        ParseError::Error(String::from(err))
+    }
+}
+
 //take a line, parse the relevant symbols/words, return the instruction it represents
 //instructions are newline-seperated, and of format
 // label: opcode operand ; comment
@@ -44,11 +50,21 @@ fn parse_line(
     //get the opcode as the first item in the iterator, error if not possible
     let opcode = split
         .next()
-        .ok_or(ParseError::Error(String::from("Could not parse opcode")))?;
+        .ok_or(ParseError::err("Could not parse opcode"))?;
 
     //if theres a second item in the iterator and it can be parsed to a u8, store it as the operand
     if let Some(operand_str) = split.next() {
         operand = operand_str.parse::<u8>().ok()
+    }
+
+    //should be no opcode with clear inc or dec
+    if (opcode == "CLEAR" || opcode == "DEC" || opcode == "INC") && operand != Option::None {
+        return Err(ParseError::err("No operand expected here"));
+    }
+
+    //iterator should now be empty no matter what
+    if let Some(_) = split.next() {
+        return Err(ParseError::Error(String::from("Too many operands")));
     }
 
     //match opcodes to instructions
@@ -56,29 +72,21 @@ fn parse_line(
     let instruction = match opcode {
         "CLEAR" => Instruction::CLEAR,
         "INC" => Instruction::INC,
-        "ADD" => Instruction::ADD(
-            operand.ok_or(ParseError::Error(String::from("Could not parse operand")))?,
-        ),
+        "ADD" => Instruction::ADD(operand.ok_or(ParseError::err("Could not parse operand"))?),
         "DEC" => Instruction::DEC,
-        "JMP" => Instruction::JMP(
-            operand.ok_or(ParseError::Error(String::from("Could not parse operand")))?,
-        ),
-        "BUZ" | "BNZ" | "BZC" | "BNE" => Instruction::BNZ(
-            operand.ok_or(ParseError::Error(String::from("Could not parse operand")))?,
-        ),
-        "LOAD" => Instruction::LOAD(
-            operand.ok_or(ParseError::Error(String::from("Could not parse operand")))?,
-        ),
-        "STORE" => Instruction::STORE(
-            operand.ok_or(ParseError::Error(String::from("Could not parse operand")))?,
-        ),
-        _ => return Err(ParseError::Error(String::from("Parse error"))),
+        "JMP" => Instruction::JMP(operand.ok_or(ParseError::err("Could not parse operand"))?),
+        "BUZ" | "BNZ" | "BZC" | "BNE" => {
+            Instruction::BNZ(operand.ok_or(ParseError::err("Could not parse operand"))?)
+        }
+        "LOAD" => Instruction::LOAD(operand.ok_or(ParseError::err("Could not parse operand"))?),
+        "STORE" => Instruction::STORE(operand.ok_or(ParseError::err("Could not parse operand"))?),
+        _ => return Err(ParseError::err("Invalid opcode")),
     };
 
     return Ok(instruction);
 }
 
-//the main assembler function
+//the main parser function
 //takes a large string (the file) and returns a vec of instructions
 pub fn parse_file(file: &str) -> Vec<u8> {
     //keeps track of symbols and their names/locations
