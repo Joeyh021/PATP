@@ -107,6 +107,10 @@ fn parse_line_errors() {
         parse_line("ADD x ;", 0, &mut HashMap::new()),
         Err(ParseError::err("Could not parse operand"))
     );
+    assert_eq!(
+        parse_line("DEEZ NUTS ; haha", 0, &mut HashMap::new()),
+        Err(ParseError::err("Invalid opcode"))
+    );
 }
 
 #[test]

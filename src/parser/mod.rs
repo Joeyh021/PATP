@@ -106,4 +106,7 @@ pub fn parse_file(file: &str) -> Vec<u8> {
 }
 
 #[cfg(test)]
-mod test;
+mod test_files;
+
+#[cfg(test)]
+mod test_lines;
