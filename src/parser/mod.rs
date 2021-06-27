@@ -96,11 +96,11 @@ pub fn parse_file(file: &str) -> Vec<u8> {
     let mut instructions = file.lines().enumerate();
 
     while let Some((lineno, line)) = instructions.next() {
-        binary.push(
-            parse_line(&line, lineno, &mut symbol_table)
-                .unwrap()
-                .assemble(),
-        );
+        match parse_line(&line, lineno, &mut symbol_table).map(|i| i.assemble()) {
+            Err(ParseError::Blank) => (),
+            Err(ParseError::Error(str)) => panic!("Error on line {}: {}", lineno, str),
+            Ok(byte) => binary.push(byte),
+        }
     }
     return binary;
 }
