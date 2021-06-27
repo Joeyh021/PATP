@@ -9,3 +9,6 @@ authors = ["Joe Harrison <josephharrison1@me.com>"]
 edition = "2018"
 
 
+[dependencies]
+assembler = {path = "assembler"}
+emulator = {path = "emulator"}

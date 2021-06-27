@@ -1,6 +1,5 @@
 use std::{fs, path::Path};
 
-mod instruction;
 mod parser;
 
 pub fn assemble(path: &Path) {

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::instruction::Instruction;
+use emulator::instruction::Instruction;
 
 #[derive(Debug, PartialEq)]
 pub enum ParseError {

@@ -11,7 +11,7 @@ pub enum Instruction {
     STORE(u8), //111
 }
 
-//a method for instructions to convert them to their binary
+//methods to convert from/to our enum format
 impl Instruction {
     pub fn assemble(&self) -> u8 {
         match *self {
@@ -24,6 +24,22 @@ impl Instruction {
             Instruction::LOAD(op) if op < 32 => (0x06 << 5) | op,
             Instruction::STORE(op) if op < 32 => (0x07 << 5) | op,
             _ => panic!("bad instruction"),
+        }
+    }
+
+    pub fn disassemble(byte: u8) -> Self {
+        let opcode = (byte & 0b111_00000) >> 5;
+        let operand = byte & 0b000_11111;
+        match opcode {
+            0b000 => Self::CLEAR,
+            0b001 => Self::INC,
+            0b010 => Self::ADD(operand),
+            0b011 => Self::DEC,
+            0b100 => Self::JMP(operand),
+            0b101 => Self::BNZ(operand),
+            0b110 => Self::LOAD(operand),
+            0b111 => Self::STORE(operand),
+            _ => panic!("not sure how this could ever occur but okay rust"),
         }
     }
 }
