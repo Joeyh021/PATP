@@ -1,9 +1,11 @@
+[workspace]
+
+members = ["assembler", "emulator"]
+
 [package]
-name = "assembler"
+name = "patp"
 version = "0.1.0"
-authors = ["Joeyh021 <josephharrison1@me.com>"]
+authors = ["Joe Harrison <josephharrison1@me.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]

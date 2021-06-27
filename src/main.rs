@@ -1,23 +1,9 @@
-use std::env::args;
-use std::fs;
-use std::iter::Iterator;
-
-mod instruction;
-mod parser;
+use std::env;
 
 fn main() {
-    //get the args from the command line as a vector of Strings
-
-    let args: Vec<String> = args().collect();
-    if args.len() < 2 {
-        panic!("please enter a filename")
-    }
-
-    let filename: &str = &args[1];
-
-    let file: String = fs::read_to_string(filename).expect("Could not open file!");
-
-    let binary: Vec<u8> = parser::parse_file(&file);
-
-    fs::write("output", &binary).expect("Error writing to file");
+    let mut args = env::args();
+    args.next();
+    let cmd = args.next().expect("please specify a command");
+    let file = args.next().expect("please specify a file name");
+    println!("perform operation {} on file {}", cmd, file)
 }
