@@ -64,7 +64,7 @@ fn parse_line(
 
     //iterator should now be empty no matter what
     if let Some(_) = split.next() {
-        return Err(ParseError::Error(String::from("Too many operands")));
+        return Err(ParseError::err("Too many operands"));
     }
 
     //match opcodes to instructions
