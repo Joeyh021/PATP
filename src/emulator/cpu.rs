@@ -1,4 +1,4 @@
-use super::instruction::Instruction;
+use crate::instruction::Instruction;
 
 struct CPU {
     memory: Box<[u8; 32]>,

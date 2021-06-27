@@ -1,7 +1,3 @@
-[workspace]
-
-members = ["assembler", "emulator"]
-
 [package]
 name = "patp"
 version = "0.1.0"
@@ -9,6 +5,3 @@ authors = ["Joe Harrison <josephharrison1@me.com>"]
 edition = "2018"
 
 
-[dependencies]
-assembler = {path = "assembler"}
-emulator = {path = "emulator"}

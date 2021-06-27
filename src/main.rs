@@ -1,5 +1,9 @@
 use std::env;
 
+mod assembler;
+mod emulator;
+mod instruction;
+
 fn main() {
     let mut args = env::args();
     args.next();
