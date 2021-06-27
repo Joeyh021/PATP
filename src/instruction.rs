@@ -1,4 +1,5 @@
 //the type to represent instructions
+#[derive(Debug, PartialEq, Eq)]
 pub enum Instruction {
     CLEAR,     //000
     INC,       //001

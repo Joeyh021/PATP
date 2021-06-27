@@ -25,8 +25,10 @@ fn parse_line(line: &str, _lineno: usize, _table: &mut HashMap<&str, u8>) -> Opt
 
     //just left with opcode operand at this point
     let mut split = line.trim().split_whitespace();
+    //get the opcode as the first item in the iterator, error if not possible
     let opcode = split.next()?;
 
+    //if theres a second item in the iterator and it can be parsed to a u8, store it as the operand
     if let Some(operand_str) = split.next() {
         operand = operand_str.parse::<u8>().ok()
     }
@@ -47,7 +49,7 @@ fn parse_line(line: &str, _lineno: usize, _table: &mut HashMap<&str, u8>) -> Opt
 }
 
 //the main assembler function
-//takes a vec of strings (the file) and returns a vec of instructions
+//takes a large string (the file) and returns a vec of instructions
 pub fn parse_file(file: &str) -> Vec<u8> {
     //keeps track of symbols and their names/locations
     let mut symbol_table: HashMap<&str, u8> = HashMap::new();
@@ -63,4 +65,21 @@ pub fn parse_file(file: &str) -> Vec<u8> {
         );
     }
     return binary;
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn parse_line_basic() {
+        assert_eq!(
+            parse_line("CLEAR", 0, &mut HashMap::new()),
+            Some(Instruction::CLEAR)
+        );
+        assert_eq!(
+            parse_line("ADD 12", 0, &mut HashMap::new()),
+            Some(Instruction::ADD(12))
+        );
+    }
 }
