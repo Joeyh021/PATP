@@ -18,10 +18,11 @@ impl Instruction {
             Instruction::INC => 0x01,
             Instruction::ADD(op) => (0x02 << 5) | op,
             Instruction::DEC => 0x03,
-            Instruction::JMP(op) => (0x04 << 5) | op,
-            Instruction::BNZ(op) => (0x05 << 5) | op,
-            Instruction::LOAD(op) => (0x06 << 5) | op,
-            Instruction::STORE(op) => (0x07 << 5) | op,
+            Instruction::JMP(op) if op < 32 => (0x04 << 5) | op,
+            Instruction::BNZ(op) if op < 32 => (0x05 << 5) | op,
+            Instruction::LOAD(op) if op < 32 => (0x06 << 5) | op,
+            Instruction::STORE(op) if op < 32 => (0x07 << 5) | op,
+            _ => panic!("bad mem addr"),
         }
     }
 }
