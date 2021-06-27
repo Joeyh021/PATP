@@ -6,11 +6,11 @@ use crate::instruction::Instruction;
 //instructions are newline-seperated, and of format
 // label: opcode operand ; comment
 // returns Some(Instruction), or None if there's some parse error
-fn parse_line(line: &str, lineno: usize, table: &mut HashMap<&str, u8>) -> Option<Instruction> {
+fn parse_line(line: &str, _lineno: usize, _table: &mut HashMap<&str, u8>) -> Option<Instruction> {
     //copy the instruction so we have ownership of it
     let mut line: String = String::from(line);
 
-    let mut label: Option<&str> = None;
+    let mut _label: Option<&str> = None;
     let mut operand: Option<u8> = None;
 
     //remove the comment from the line, if one exists
@@ -20,7 +20,7 @@ fn parse_line(line: &str, lineno: usize, table: &mut HashMap<&str, u8>) -> Optio
 
     //get the label, if the line has one
     if let Some(i) = line.find(':') {
-        label = Some(&line[0..i]);
+        _label = Some(&line[0..i]);
     }
 
     //just left with opcode operand at this point
