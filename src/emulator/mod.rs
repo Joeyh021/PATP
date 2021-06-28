@@ -1,6 +1,7 @@
 mod cpu;
 
-pub fn emulate(_program: &[u8]) {}
-
-#[cfg(test)]
-mod test;
+pub fn emulate(program: &[u8]) -> cpu::CPU {
+    program.iter().fold(cpu::CPU::new(), |state, instruction| {
+        cpu::CPU::execute(state, *instruction)
+    })
+}
