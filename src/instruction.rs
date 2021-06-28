@@ -15,14 +15,14 @@ pub enum Instruction {
 impl Instruction {
     pub fn assemble(&self) -> u8 {
         match *self {
-            Instruction::CLEAR => 0x00,
-            Instruction::INC => 0x01,
-            Instruction::ADD(op) if op < 32 => (0x02 << 5) | op,
-            Instruction::DEC => 0x03,
-            Instruction::JMP(op) if op < 32 => (0x04 << 5) | op,
-            Instruction::BNZ(op) if op < 32 => (0x05 << 5) | op,
-            Instruction::LOAD(op) if op < 32 => (0x06 << 5) | op,
-            Instruction::STORE(op) if op < 32 => (0x07 << 5) | op,
+            Instruction::CLEAR => 0,
+            Instruction::INC => 0b001_00000,
+            Instruction::ADD(op) if op < 32 => 0b010_00000 | op,
+            Instruction::DEC => 0b011_00000,
+            Instruction::JMP(op) if op < 32 => 0b100_00000 | op,
+            Instruction::BNZ(op) if op < 32 => 0b101_00000 | op,
+            Instruction::LOAD(op) if op < 32 => 0b110_00000 | op,
+            Instruction::STORE(op) if op < 32 => 0b111_00000 | op,
             _ => panic!("bad instruction"),
         }
     }
@@ -41,5 +41,16 @@ impl Instruction {
             0b111 => Self::STORE(operand),
             _ => panic!("not sure how this could ever occur but okay rust"),
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_disassemble() {
+        assert_eq!(Instruction::disassemble(0), Instruction::CLEAR);
+        assert_eq!(Instruction::disassemble(0b001_10101), Instruction::INC);
     }
 }
