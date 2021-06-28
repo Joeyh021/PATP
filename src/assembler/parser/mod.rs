@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use crate::instruction::Instruction;
 
 #[derive(Debug, PartialEq)]
@@ -16,43 +14,40 @@ impl ParseError {
 
 //take a line, parse the relevant symbols/words, return the instruction it represents
 //instructions are newline-seperated, and of format
-// label: opcode operand ; comment
+// opcode operand ; comment
 // returns Some(Instruction), or None if there's some parse error
-fn parse_line(
-    line: &str,
-    _lineno: usize,
-    _table: &mut HashMap<&str, u8>,
-) -> Result<Instruction, ParseError> {
+fn parse_line(line: &str) -> Result<Instruction, ParseError> {
     //copy the instruction so we have ownership of it
-    let mut line: String = String::from(line.trim());
+    let mut line_slice: &str = line.trim();
 
     //if the line starts with a comment (;) or is entirely whitespace, then return a blank line
     if line.starts_with(';') || line == "" {
         return Err(ParseError::Blank);
     }
 
-    let mut _label: Option<&str> = None;
     let mut operand: Option<u8> = None;
 
     //remove the comment from the line, if one exists
     if let Some(i) = line.find(';') {
-        line.truncate(i);
+        line_slice = &line_slice[i..];
     }
 
-    //get the label, if the line has one
-    if let Some(i) = line.find(':') {
-        _label = Some(&line[0..i]);
-    }
+    // labels are unimplemented for now
+    // //get the label, if the line has one
+    // if let Some(i) = line_slice.find(':') {
+    //     //add the label to the symbol table
+    //     table.insert(&line[0..i], lineno as u8);
+    // }
 
     //just left with opcode operand at this point
-    let mut split = line.trim().split_whitespace();
+    let mut split = line_slice.trim().split_whitespace();
 
     //get the opcode as the first item in the iterator, error if not possible
     let opcode = split
         .next()
         .ok_or(ParseError::err("Could not parse opcode"))?;
 
-    //if theres a second item in the iterator and it can be parsed to a u8, store it as the operand
+    //if theres a second item in the iterator and it can be parsed to a u8 , store it as the operand
     if let Some(operand_str) = split.next() {
         operand = operand_str.parse::<u8>().ok()
     }
@@ -90,13 +85,12 @@ fn parse_line(
 //takes a large string (the file) and returns a vec of instructions
 pub fn parse_file(file: &str) -> Vec<u8> {
     //keeps track of symbols and their names/locations
-    let mut symbol_table: HashMap<&str, u8> = HashMap::new();
     let mut binary: Vec<u8> = Vec::new();
 
     let mut instructions = file.lines().enumerate();
 
     while let Some((lineno, line)) = instructions.next() {
-        match parse_line(&line, lineno, &mut symbol_table).map(|i| i.assemble()) {
+        match parse_line(&line).map(|i| i.assemble()) {
             Err(ParseError::Blank) => (),
             Err(ParseError::Error(str)) => panic!("Error on line {}: {}", lineno, str),
             Ok(byte) => binary.push(byte),
