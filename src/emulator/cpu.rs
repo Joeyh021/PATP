@@ -18,47 +18,45 @@ impl CPU {
         }
     }
 
-    //executes a single instruction, consuming the old state and returning a new one
-    pub fn execute(self, byte: u8) -> CPU {
+    //mutates the given state 
+    pub fn execute(&mut self, byte: u8) -> bool {
         let instruction = Instruction::disassemble(byte);
 
-        //make the new state a copy of the old one
-        //the memory is not technically copied because it is boxed, so it's the same patch of memory just in a new box
-        //the old reference is also invalidated because of this
-        let mut new_state = CPU { ..self };
-
         //increase pc
-        new_state.pc = Self::inc_pc(self.pc);
+        self.pc = Self::inc_pc(self.pc);
 
         match instruction {
-            Instruction::CLEAR => {
-                new_state.register = 0;
-                new_state.z = true;
+            Instruction::CLEAR(0) => {
+                self.register = 0;
+                self.z = true;
+            }
+            Instruction::CLEAR(_) =>{
+                return false;
             }
             Instruction::INC => {
-                new_state.register = u8::wrapping_add(self.register, 1);
-                new_state.z = if new_state.register == 0 { true } else { false };
+                self.register = u8::wrapping_add(self.register, 1);
+                self.z = if self.register == 0 { true } else { false };
             }
             Instruction::ADD(op) => {
-                new_state.register = u8::wrapping_add(self.register, op);
-                new_state.z = if new_state.register == 0 { true } else { false };
+                self.register = u8::wrapping_add(self.register, op);
+                self.z = if self.register == 0 { true } else { false };
             }
             Instruction::DEC => {
-                new_state.register = u8::wrapping_sub(self.register, 1);
-                new_state.z = if new_state.register == 0 { true } else { false };
+                self.register = u8::wrapping_sub(self.register, 1);
+                self.z = if self.register == 0 { true } else { false };
             }
-            Instruction::JMP(op) => new_state.pc = op,
+            Instruction::JMP(op) => self.pc = op,
             Instruction::BNZ(op) => {
                 if !self.z {
-                    new_state.pc = op
+                    self.pc = op
                 }
             }
             //cant refer to old memory, but can just refer to new instead because we dont modify it anywhere else
-            Instruction::LOAD(op) => new_state.register = new_state.memory[op as usize],
-            Instruction::STORE(op) => new_state.memory[op as usize] = self.register,
+            Instruction::LOAD(op) => self.register = self.memory[op as usize],
+            Instruction::STORE(op) => self.memory[op as usize] = self.register,
         }
 
-        return new_state;
+        return true;
     }
 
     //wrap at 5 bits (cant go past 31)
@@ -78,7 +76,8 @@ mod test {
 
     #[test]
     fn test_cpu_execute_single() {
-        // all easy tests on blank CPU state
+        // all easy tests of a single instruction
+        
         assert_eq!(
             CPU::execute(CPU::new(), Instruction::CLEAR.assemble()),
             CPU {
