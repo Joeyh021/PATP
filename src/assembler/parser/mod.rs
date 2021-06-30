@@ -65,7 +65,8 @@ fn parse_line(line: &str) -> Result<Instruction, ParseError> {
     //match opcodes to instructions
     //if we need an opcode and we cant get one, an error is returned here
     let instruction = match opcode {
-        "CLEAR" => Instruction::CLEAR,
+        "CLEAR" => Instruction::CLEAR(0),
+        "STOP" => Instruction::CLEAR(1),
         "INC" => Instruction::INC,
         "ADD" => Instruction::ADD(operand.ok_or(ParseError::err("Could not parse operand"))?),
         "DEC" => Instruction::DEC,

@@ -3,7 +3,7 @@ use super::*;
 //test basic opcode operand lines
 #[test]
 fn parse_line_basic() {
-    assert_eq!(parse_line("CLEAR"), Ok(Instruction::CLEAR));
+    assert_eq!(parse_line("CLEAR"), Ok(Instruction::CLEAR(0)));
 
     assert_eq!(parse_line("ADD 12"), Ok(Instruction::ADD(12)));
     assert_eq!(parse_line("BUZ 30"), Ok(Instruction::BNZ(30)));
@@ -13,7 +13,7 @@ fn parse_line_basic() {
 //test lines with comments and some weird whitespacing
 #[test]
 fn parse_line_comments() {
-    assert_eq!(parse_line("CLEAR;"), Ok(Instruction::CLEAR));
+    assert_eq!(parse_line("CLEAR;"), Ok(Instruction::CLEAR(0)));
     assert_eq!(
         parse_line("DEC       ; test comment  "),
         Ok(Instruction::DEC)
