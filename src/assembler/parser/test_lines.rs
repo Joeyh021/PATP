@@ -75,6 +75,3 @@ fn parse_line_errors() {
         Err(ParseError::err("Invalid opcode"))
     );
 }
-
-#[test]
-fn parse_line_labels() {}

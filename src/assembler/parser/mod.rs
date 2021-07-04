@@ -21,15 +21,15 @@ fn parse_line(line: &str) -> Result<Instruction, ParseError> {
     let mut line_slice: &str = line.trim();
 
     //if the line starts with a comment (;) or is entirely whitespace, then return a blank line
-    if line.starts_with(';') || line == "" {
+    if line_slice.starts_with(';') || line_slice == "" {
         return Err(ParseError::Blank);
     }
 
     let mut operand: Option<u8> = None;
 
     //remove the comment from the line, if one exists
-    if let Some(i) = line.find(';') {
-        line_slice = &line_slice[i..];
+    if let Some(i) = line_slice.find(';') {
+        line_slice = &line_slice[..i];
     }
 
     // labels are unimplemented for now
@@ -52,7 +52,7 @@ fn parse_line(line: &str) -> Result<Instruction, ParseError> {
         operand = operand_str.parse::<u8>().ok()
     }
 
-    //should be no opcode with clear inc or dec
+    //should be no opcode with clear inc stop or dec
     if (opcode == "CLEAR" || opcode == "DEC" || opcode == "INC") && operand != Option::None {
         return Err(ParseError::err("No operand expected here"));
     }

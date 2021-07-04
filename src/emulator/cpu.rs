@@ -2,6 +2,7 @@ use crate::instruction::Instruction;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct CPU {
+    pub stopped: bool,
     memory: Box<[u8; 32]>,
     z: bool,
     register: u8,
@@ -15,6 +16,7 @@ impl CPU {
             z: true,
             register: 0,
             pc: 0,
+            stopped: false,
         }
     }
 
@@ -31,9 +33,12 @@ impl CPU {
         new_state.pc = Self::inc_pc(self.pc);
 
         match instruction {
-            Instruction::CLEAR => {
+            Instruction::CLEAR(0) => {
                 new_state.register = 0;
                 new_state.z = true;
+            }
+            Instruction::CLEAR(_) => {
+                new_state.stopped = true;
             }
             Instruction::INC => {
                 new_state.register = u8::wrapping_add(self.register, 1);
@@ -80,7 +85,7 @@ mod test {
     fn test_cpu_execute_single() {
         // all easy tests on blank CPU state
         assert_eq!(
-            CPU::execute(CPU::new(), Instruction::CLEAR.assemble()),
+            CPU::execute(CPU::new(), Instruction::CLEAR(0).assemble()),
             CPU {
                 pc: 1,
                 ..CPU::new()
