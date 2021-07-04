@@ -53,7 +53,9 @@ fn parse_line(line: &str) -> Result<Instruction, ParseError> {
     }
 
     //should be no opcode with clear inc stop or dec
-    if (opcode == "CLEAR" || opcode == "DEC" || opcode == "INC") && operand != Option::None {
+    if (opcode == "CLEAR" || opcode == "DEC" || opcode == "INC" || opcode == "STOP")
+        && operand != Option::None
+    {
         return Err(ParseError::err("No operand expected here"));
     }
 

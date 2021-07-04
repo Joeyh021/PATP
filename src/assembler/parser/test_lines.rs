@@ -8,6 +8,7 @@ fn parse_line_basic() {
     assert_eq!(parse_line("ADD 12"), Ok(Instruction::ADD(12)));
     assert_eq!(parse_line("BUZ 30"), Ok(Instruction::BNZ(30)));
     assert_eq!(parse_line("STORE 18"), Ok(Instruction::STORE(18)));
+    assert_eq!(parse_line("STOP"), Ok(Instruction::CLEAR(1)));
 }
 
 //test lines with comments and some weird whitespacing
@@ -69,6 +70,10 @@ fn parse_line_errors() {
     assert_eq!(
         parse_line("ADD x ;"),
         Err(ParseError::err("Could not parse operand"))
+    );
+    assert_eq!(
+        parse_line("STOP 14 ;"),
+        Err(ParseError::err("No operand expected here"))
     );
     assert_eq!(
         parse_line("DEEZ NUTS ; haha"),
