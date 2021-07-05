@@ -1,17 +1,17 @@
 use crate::instruction::Instruction;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct CPU {
-    memory: Box<[u8; 32]>,
+    memory: [u8; 32],
     z: bool,
     register: u8,
-    pc: u8,
+    pub pc: u8,
 }
 
 impl CPU {
     pub fn new() -> CPU {
         CPU {
-            memory: Box::new([0; 32]),
+            memory: [0; 32],
             z: true,
             register: 0,
             pc: 0,
@@ -19,13 +19,11 @@ impl CPU {
     }
 
     //executes a single instruction, consuming the old state and returning a new one
-    pub fn execute(self, byte: u8) -> Option<CPU> {
+    pub fn execute(&self, byte: u8) -> Option<CPU> {
         let instruction = Instruction::disassemble(byte);
 
-        //make the new state a copy of the old one
-        //the memory is not technically copied because it is boxed, so it's the same patch of memory just in a new box
-        //the old reference is also invalidated because of this
-        let mut new_state = CPU { ..self };
+        //make a new state from the old one
+        let mut new_state: CPU = self.clone();
 
         //increase pc
         new_state.pc = Self::inc_pc(self.pc);
@@ -89,14 +87,14 @@ mod test {
     fn test_cpu_execute_single() {
         // all easy tests on blank CPU state
         assert_eq!(
-            CPU::execute(CPU::new(), Instruction::CLEAR(0).assemble()),
+            CPU::execute(&CPU::new(), Instruction::CLEAR(0).assemble()),
             Some(CPU {
                 pc: 1,
                 ..CPU::new()
             })
         );
         assert_eq!(
-            CPU::execute(CPU::new(), Instruction::INC.assemble()),
+            CPU::execute(&CPU::new(), Instruction::INC.assemble()),
             Some(CPU {
                 pc: 1,
                 register: 1,
@@ -105,7 +103,7 @@ mod test {
             })
         );
         assert_eq!(
-            CPU::execute(CPU::new(), Instruction::ADD(12).assemble()),
+            CPU::execute(&CPU::new(), Instruction::ADD(12).assemble()),
             Some(CPU {
                 register: 12,
                 pc: 1,
@@ -114,7 +112,7 @@ mod test {
             })
         );
         assert_eq!(
-            CPU::execute(CPU::new(), Instruction::DEC.assemble()),
+            CPU::execute(&CPU::new(), Instruction::DEC.assemble()),
             Some(CPU {
                 register: 255,
                 pc: 1,
@@ -123,7 +121,7 @@ mod test {
             })
         );
         assert_eq!(
-            CPU::execute(CPU::new(), Instruction::JMP(17).assemble()),
+            CPU::execute(&CPU::new(), Instruction::JMP(17).assemble()),
             Some(CPU {
                 pc: 17,
                 ..CPU::new()
@@ -133,7 +131,7 @@ mod test {
         //bnz when z is true
         //shouldn't branch
         assert_eq!(
-            CPU::execute(CPU::new(), Instruction::BNZ(21).assemble()),
+            CPU::execute(&CPU::new(), Instruction::BNZ(21).assemble()),
             Some(CPU {
                 pc: 1,
                 ..CPU::new()
@@ -144,7 +142,7 @@ mod test {
         //should branch
         assert_eq!(
             CPU::execute(
-                CPU {
+                &CPU {
                     z: false,
                     ..CPU::new()
                 },
@@ -160,7 +158,7 @@ mod test {
         //store number 11 at address 1
         assert_eq!(
             CPU::execute(
-                CPU {
+                &CPU {
                     register: 11,
                     ..CPU::new()
                 },
@@ -169,10 +167,10 @@ mod test {
             Some(CPU {
                 pc: 1,
                 register: 11,
-                memory: Box::new([
+                memory: [
                     0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0, 0, 0, 0, 0, 0
-                ]),
+                ],
                 ..CPU::new()
             })
         );
@@ -180,11 +178,11 @@ mod test {
         //load number 11 from address 2
         assert_eq!(
             CPU::execute(
-                CPU {
-                    memory: Box::new([
+                &CPU {
+                    memory: [
                         0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                         0, 0, 0, 0, 0, 0, 0
-                    ]),
+                    ],
                     ..CPU::new()
                 },
                 Instruction::LOAD(2).assemble()
@@ -192,10 +190,10 @@ mod test {
             Some(CPU {
                 pc: 1,
                 register: 11,
-                memory: Box::new([
+                memory: [
                     0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0, 0, 0, 0, 0, 0
-                ]),
+                ],
                 ..CPU::new()
             })
         );
@@ -271,7 +269,7 @@ mod test {
         //test wraparound
         assert_eq!(
             CPU::execute(
-                CPU {
+                &CPU {
                     pc: 0,
                     register: 255,
                     z: false,
@@ -289,7 +287,7 @@ mod test {
 
         //test execution halts on a stop
         assert_eq!(
-            CPU::execute(CPU::new(), Instruction::CLEAR(1).assemble()),
+            CPU::execute(&CPU::new(), Instruction::CLEAR(1).assemble()),
             None
         );
     }
