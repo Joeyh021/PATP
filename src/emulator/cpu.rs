@@ -2,7 +2,6 @@ use crate::instruction::Instruction;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct CPU {
-    pub stopped: bool,
     memory: Box<[u8; 32]>,
     z: bool,
     register: u8,
@@ -16,12 +15,11 @@ impl CPU {
             z: true,
             register: 0,
             pc: 0,
-            stopped: false,
         }
     }
 
     //executes a single instruction, consuming the old state and returning a new one
-    pub fn execute(self, byte: u8) -> CPU {
+    pub fn execute(self, byte: u8) -> Option<CPU> {
         let instruction = Instruction::disassemble(byte);
 
         //make the new state a copy of the old one
@@ -38,7 +36,7 @@ impl CPU {
                 new_state.z = true;
             }
             Instruction::CLEAR(_) => {
-                new_state.stopped = true;
+                return None;
             }
             Instruction::INC => {
                 new_state.register = u8::wrapping_add(self.register, 1);
@@ -63,7 +61,7 @@ impl CPU {
             Instruction::STORE(op) => new_state.memory[op as usize] = self.register,
         }
 
-        return new_state;
+        return Some(new_state);
     }
 
     //wrap at 5 bits (cant go past 31)
@@ -73,6 +71,12 @@ impl CPU {
             31 => 0,
             _ => old + 1,
         }
+    }
+
+    //takes a CPU and loads a program into it's memory
+    pub fn load(mut self, program: &[u8]) -> CPU {
+        self.memory[..program.len()].copy_from_slice(program);
+        self
     }
 }
 
@@ -86,54 +90,54 @@ mod test {
         // all easy tests on blank CPU state
         assert_eq!(
             CPU::execute(CPU::new(), Instruction::CLEAR(0).assemble()),
-            CPU {
+            Some(CPU {
                 pc: 1,
                 ..CPU::new()
-            }
+            })
         );
         assert_eq!(
             CPU::execute(CPU::new(), Instruction::INC.assemble()),
-            CPU {
+            Some(CPU {
                 pc: 1,
                 register: 1,
                 z: false,
                 ..CPU::new()
-            }
+            })
         );
         assert_eq!(
             CPU::execute(CPU::new(), Instruction::ADD(12).assemble()),
-            CPU {
+            Some(CPU {
                 register: 12,
                 pc: 1,
                 z: false,
                 ..CPU::new()
-            }
+            })
         );
         assert_eq!(
             CPU::execute(CPU::new(), Instruction::DEC.assemble()),
-            CPU {
+            Some(CPU {
                 register: 255,
                 pc: 1,
                 z: false,
                 ..CPU::new()
-            }
+            })
         );
         assert_eq!(
             CPU::execute(CPU::new(), Instruction::JMP(17).assemble()),
-            CPU {
+            Some(CPU {
                 pc: 17,
                 ..CPU::new()
-            }
+            })
         );
 
         //bnz when z is true
         //shouldn't branch
         assert_eq!(
             CPU::execute(CPU::new(), Instruction::BNZ(21).assemble()),
-            CPU {
+            Some(CPU {
                 pc: 1,
                 ..CPU::new()
-            }
+            })
         );
 
         //bnz when z is false
@@ -146,11 +150,11 @@ mod test {
                 },
                 Instruction::BNZ(21).assemble()
             ),
-            CPU {
+            Some(CPU {
                 pc: 21,
                 z: false,
                 ..CPU::new()
-            }
+            })
         );
 
         //store number 11 at address 1
@@ -162,7 +166,7 @@ mod test {
                 },
                 Instruction::STORE(1).assemble()
             ),
-            CPU {
+            Some(CPU {
                 pc: 1,
                 register: 11,
                 memory: Box::new([
@@ -170,7 +174,7 @@ mod test {
                     0, 0, 0, 0, 0, 0
                 ]),
                 ..CPU::new()
-            }
+            })
         );
 
         //load number 11 from address 2
@@ -185,7 +189,7 @@ mod test {
                 },
                 Instruction::LOAD(2).assemble()
             ),
-            CPU {
+            Some(CPU {
                 pc: 1,
                 register: 11,
                 memory: Box::new([
@@ -193,7 +197,7 @@ mod test {
                     0, 0, 0, 0, 0, 0
                 ]),
                 ..CPU::new()
-            }
+            })
         );
     }
 
@@ -201,7 +205,7 @@ mod test {
     fn test_cpu_execute_program() {
         //runs a few steps in sequence, testing the CPU state is as it should be at each step
         let mut cpu = CPU::new();
-        cpu = cpu.execute(Instruction::INC.assemble());
+        cpu = cpu.execute(Instruction::INC.assemble()).unwrap();
 
         assert_eq!(
             CPU {
@@ -213,7 +217,7 @@ mod test {
             cpu
         );
 
-        cpu = cpu.execute(Instruction::INC.assemble());
+        cpu = cpu.execute(Instruction::INC.assemble()).unwrap();
 
         assert_eq!(
             CPU {
@@ -225,7 +229,7 @@ mod test {
             cpu
         );
 
-        cpu = cpu.execute(Instruction::ADD(9).assemble());
+        cpu = cpu.execute(Instruction::ADD(9).assemble()).unwrap();
 
         assert_eq!(
             CPU {
@@ -237,7 +241,7 @@ mod test {
             cpu
         );
 
-        cpu = cpu.execute(Instruction::DEC.assemble());
+        cpu = cpu.execute(Instruction::DEC.assemble()).unwrap();
 
         assert_eq!(
             CPU {
@@ -249,7 +253,7 @@ mod test {
             cpu
         );
 
-        cpu = cpu.execute(Instruction::JMP(20).assemble());
+        cpu = cpu.execute(Instruction::JMP(20).assemble()).unwrap();
 
         assert_eq!(
             CPU {
@@ -275,12 +279,18 @@ mod test {
                 },
                 Instruction::INC.assemble()
             ),
-            CPU {
+            Some(CPU {
                 pc: 1,
                 register: 0,
                 z: true,
                 ..CPU::new()
-            }
+            })
+        );
+
+        //test execution halts on a stop
+        assert_eq!(
+            CPU::execute(CPU::new(), Instruction::CLEAR(1).assemble()),
+            None
         );
     }
 }

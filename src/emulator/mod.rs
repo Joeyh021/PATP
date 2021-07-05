@@ -1,7 +1,6 @@
 mod cpu;
-
-pub fn emulate(program: &[u8]) -> cpu::CPU {
-    program.iter().fold(cpu::CPU::new(), |state, instruction| {
-        cpu::CPU::execute(state, *instruction)
-    })
+use cpu::CPU;
+pub fn emulate(program: &[u8]) -> CPU {
+    let state = CPU::new().load(program);
+    CPU::new()
 }
