@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, path::Path};
 
 mod assembler;
 mod emulator;
@@ -9,5 +9,9 @@ fn main() {
     args.next();
     let cmd = args.next().expect("please specify a command");
     let file = args.next().expect("please specify a file name");
-    println!("perform operation {} on file {}", cmd, file)
+    match cmd.as_str() {
+        "assemble" => assembler::assemble(Path::new(&file)),
+        "emulate" => emulator::emulate(Path::new(&file)),
+        _ => println!("command not recognised! exiting.."),
+    }
 }

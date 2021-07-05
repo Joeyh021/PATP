@@ -7,5 +7,7 @@ pub fn assemble(path: &Path) {
 
     let binary: Vec<u8> = parser::parse_file(&file);
 
-    fs::write("output", &binary).expect("Error writing to file");
+    let outfile = path.file_stem().unwrap();
+
+    fs::write(outfile, &binary).expect("Error writing to file");
 }
