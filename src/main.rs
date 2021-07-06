@@ -12,8 +12,8 @@ fn main() -> Result<(), String> {
         .ok_or("Please specify either assemble or emulate")?;
     let file = args.next().ok_or("Please specify a file")?;
     match cmd.as_str() {
-        "assemble" => assembler::assemble(Path::new(&file)).map_err(|err| err.to_string()),
-        "emulate" => emulator::emulate(Path::new(&file)).map_err(|err| err.to_string()),
+        "assemble" => assembler::assemble(Path::new(&file)),
+        "emulate" => emulator::emulate(Path::new(&file)),
         _ => Err(format!("Command {} not recognised.", cmd)),
     }
 }
