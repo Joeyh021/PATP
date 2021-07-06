@@ -1,7 +1,7 @@
 //the type to represent instructions
 #[derive(Debug, PartialEq, Eq)]
 pub enum Instruction {
-    CLEAR(u8),     //000
+    CLEAR(u8), //000
     INC,       //001
     ADD(u8),   //010
     DEC,       //011
@@ -13,17 +13,17 @@ pub enum Instruction {
 
 //methods to convert from/to our enum format
 impl Instruction {
-    pub fn assemble(&self) -> u8 {
+    pub fn assemble(&self) -> Option<u8> {
         match *self {
-            Instruction::CLEAR(op) => 0b000_00000 | op,
-            Instruction::INC => 0b001_00000,
-            Instruction::ADD(op) if op < 32 => 0b010_00000 | op,
-            Instruction::DEC => 0b011_00000,
-            Instruction::JMP(op) if op < 32 => 0b100_00000 | op,
-            Instruction::BNZ(op) if op < 32 => 0b101_00000 | op,
-            Instruction::LOAD(op) if op < 32 => 0b110_00000 | op,
-            Instruction::STORE(op) if op < 32 => 0b111_00000 | op,
-            _ => panic!("bad instruction"),
+            Instruction::CLEAR(op) => Some(0b000_00000 | op),
+            Instruction::INC => Some(0b001_00000),
+            Instruction::ADD(op) if op < 32 => Some(0b010_00000 | op),
+            Instruction::DEC => Some(0b011_00000),
+            Instruction::JMP(op) if op < 32 => Some(0b100_00000 | op),
+            Instruction::BNZ(op) if op < 32 => Some(0b101_00000 | op),
+            Instruction::LOAD(op) if op < 32 => Some(0b110_00000 | op),
+            Instruction::STORE(op) if op < 32 => Some(0b111_00000 | op),
+            _ => None,
         }
     }
 
