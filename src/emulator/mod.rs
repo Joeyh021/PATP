@@ -1,11 +1,11 @@
 mod cpu;
 use cpu::CPU;
-use std::{fs, path::Path};
+use std::{fs, io::Error, path::Path};
 
 fn execute_program(program: &[u8]) -> CPU {
     let mut state = CPU::new().load(program);
     loop {
-        let instruction = program[state.pc as usize];
+        let instruction = state.memory[state.pc as usize];
         let new_state = state.execute(instruction);
         match new_state {
             None => return state,
@@ -14,8 +14,9 @@ fn execute_program(program: &[u8]) -> CPU {
     }
 }
 
-pub fn emulate(path: &Path) {
-    let file = fs::read(path).expect("Could not open file!");
+pub fn emulate(path: &Path) -> Result<(), Error> {
+    let file = fs::read(path)?;
     let final_state = execute_program(&file);
     println!("Final cpu state \n : {:?}", final_state);
+    Ok(())
 }

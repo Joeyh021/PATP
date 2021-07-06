@@ -2,7 +2,7 @@ use crate::instruction::Instruction;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct CPU {
-    memory: [u8; 32],
+    pub memory: [u8; 32],
     z: bool,
     register: u8,
     pub pc: u8,
