@@ -65,7 +65,7 @@ mod test {
     #[test]
     fn test_assemble() {
         assert_eq!(Instruction::CLEAR(0).assemble(), Some(0));
-        assert_eq!(Instruction::CLEAR(0).assemble(), Some(1));
+        assert_eq!(Instruction::CLEAR(1).assemble(), Some(1));
         assert_eq!(Instruction::INC.assemble(), Some(0b001_00000));
         assert_eq!(Instruction::ADD(1).assemble(), Some(0b010_00001));
         assert_eq!(Instruction::DEC.assemble(), Some(0b011_00000));
@@ -73,5 +73,7 @@ mod test {
         assert_eq!(Instruction::BNZ(6).assemble(), Some(0b101_00110));
         assert_eq!(Instruction::LOAD(15).assemble(), Some(0b110_01111));
         assert_eq!(Instruction::STORE(31).assemble(), Some(0b111_11111));
+        // should None
+        assert_eq!(Instruction::ADD(68).assemble(), None);
     }
 }

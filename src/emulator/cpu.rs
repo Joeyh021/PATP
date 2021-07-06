@@ -87,14 +87,14 @@ mod test {
     fn test_cpu_execute_single() {
         // all easy tests on blank CPU state
         assert_eq!(
-            CPU::execute(&CPU::new(), Instruction::CLEAR(0).assemble()),
+            CPU::execute(&CPU::new(), Instruction::CLEAR(0).assemble().unwrap()),
             Some(CPU {
                 pc: 1,
                 ..CPU::new()
             })
         );
         assert_eq!(
-            CPU::execute(&CPU::new(), Instruction::INC.assemble()),
+            CPU::execute(&CPU::new(), Instruction::INC.assemble().unwrap()),
             Some(CPU {
                 pc: 1,
                 register: 1,
@@ -103,7 +103,7 @@ mod test {
             })
         );
         assert_eq!(
-            CPU::execute(&CPU::new(), Instruction::ADD(12).assemble()),
+            CPU::execute(&CPU::new(), Instruction::ADD(12).assemble().unwrap()),
             Some(CPU {
                 register: 12,
                 pc: 1,
@@ -112,7 +112,7 @@ mod test {
             })
         );
         assert_eq!(
-            CPU::execute(&CPU::new(), Instruction::DEC.assemble()),
+            CPU::execute(&CPU::new(), Instruction::DEC.assemble().unwrap()),
             Some(CPU {
                 register: 255,
                 pc: 1,
@@ -121,7 +121,7 @@ mod test {
             })
         );
         assert_eq!(
-            CPU::execute(&CPU::new(), Instruction::JMP(17).assemble()),
+            CPU::execute(&CPU::new(), Instruction::JMP(17).assemble().unwrap()),
             Some(CPU {
                 pc: 17,
                 ..CPU::new()
@@ -131,7 +131,7 @@ mod test {
         //bnz when z is true
         //shouldn't branch
         assert_eq!(
-            CPU::execute(&CPU::new(), Instruction::BNZ(21).assemble()),
+            CPU::execute(&CPU::new(), Instruction::BNZ(21).assemble().unwrap()),
             Some(CPU {
                 pc: 1,
                 ..CPU::new()
@@ -146,7 +146,7 @@ mod test {
                     z: false,
                     ..CPU::new()
                 },
-                Instruction::BNZ(21).assemble()
+                Instruction::BNZ(21).assemble().unwrap()
             ),
             Some(CPU {
                 pc: 21,
@@ -162,7 +162,7 @@ mod test {
                     register: 11,
                     ..CPU::new()
                 },
-                Instruction::STORE(1).assemble()
+                Instruction::STORE(1).assemble().unwrap()
             ),
             Some(CPU {
                 pc: 1,
@@ -185,7 +185,7 @@ mod test {
                     ],
                     ..CPU::new()
                 },
-                Instruction::LOAD(2).assemble()
+                Instruction::LOAD(2).assemble().unwrap()
             ),
             Some(CPU {
                 pc: 1,
@@ -203,7 +203,7 @@ mod test {
     fn test_cpu_execute_program() {
         //runs a few steps in sequence, testing the CPU state is as it should be at each step
         let mut cpu = CPU::new();
-        cpu = cpu.execute(Instruction::INC.assemble()).unwrap();
+        cpu = cpu.execute(Instruction::INC.assemble().unwrap()).unwrap();
 
         assert_eq!(
             CPU {
@@ -215,7 +215,7 @@ mod test {
             cpu
         );
 
-        cpu = cpu.execute(Instruction::INC.assemble()).unwrap();
+        cpu = cpu.execute(Instruction::INC.assemble().unwrap()).unwrap();
 
         assert_eq!(
             CPU {
@@ -227,7 +227,9 @@ mod test {
             cpu
         );
 
-        cpu = cpu.execute(Instruction::ADD(9).assemble()).unwrap();
+        cpu = cpu
+            .execute(Instruction::ADD(9).assemble().unwrap())
+            .unwrap();
 
         assert_eq!(
             CPU {
@@ -239,7 +241,7 @@ mod test {
             cpu
         );
 
-        cpu = cpu.execute(Instruction::DEC.assemble()).unwrap();
+        cpu = cpu.execute(Instruction::DEC.assemble().unwrap()).unwrap();
 
         assert_eq!(
             CPU {
@@ -251,7 +253,9 @@ mod test {
             cpu
         );
 
-        cpu = cpu.execute(Instruction::JMP(20).assemble()).unwrap();
+        cpu = cpu
+            .execute(Instruction::JMP(20).assemble().unwrap())
+            .unwrap();
 
         assert_eq!(
             CPU {
@@ -275,7 +279,7 @@ mod test {
                     z: false,
                     ..CPU::new()
                 },
-                Instruction::INC.assemble()
+                Instruction::INC.assemble().unwrap()
             ),
             Some(CPU {
                 pc: 1,
@@ -287,7 +291,7 @@ mod test {
 
         //test execution halts on a stop
         assert_eq!(
-            CPU::execute(&CPU::new(), Instruction::CLEAR(1).assemble()),
+            CPU::execute(&CPU::new(), Instruction::CLEAR(1).assemble().unwrap()),
             None
         );
     }

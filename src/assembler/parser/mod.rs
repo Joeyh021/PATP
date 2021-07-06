@@ -86,7 +86,7 @@ fn parse_line(line: &str) -> Result<Instruction, ParseError> {
 
 //the main parser function
 //takes a large string (the file) and returns a vec of instructions
-pub fn parse_file(file: &str) -> Vec<u8> {
+pub fn parse_file(file: &str) -> Result<Vec<u8>, String> {
     //keeps track of symbols and their names/locations
     let mut binary: Vec<u8> = Vec::new();
 
@@ -95,11 +95,14 @@ pub fn parse_file(file: &str) -> Vec<u8> {
     while let Some((lineno, line)) = instructions.next() {
         match parse_line(&line).map(|i| i.assemble()) {
             Err(ParseError::Blank) => (),
-            Err(ParseError::Error(str)) => panic!("Error on line {}: {}", lineno, str),
-            Ok(byte) => binary.push(byte),
+            Err(ParseError::Error(str)) => {
+                return Err(format!("Parse error on line {}: {}", lineno, str))
+            }
+            Ok(None) => return Err(format!("Assembly error on line {}", lineno + 1)),
+            Ok(Some(byte)) => binary.push(byte),
         }
     }
-    return binary;
+    return Ok(binary);
 }
 
 #[cfg(test)]
