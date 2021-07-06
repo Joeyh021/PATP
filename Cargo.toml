@@ -1,7 +1,8 @@
 [package]
 name = "patp"
 version = "0.1.0"
-authors = ["Joe Harrison <josephharrison1@me.com>"]
+authors = ["Joe Harrison <joeyh021@icloud.co,>"]
 edition = "2018"
+repository = "https://github.com/Joeyh021/PATP"
 
-
+ 
