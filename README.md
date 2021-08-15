@@ -7,5 +7,5 @@ This is an assembler and emulator for the PATP (Pedagogically Advanced Teaching 
 The project is built with `cargo`.
 
 - `cargo test` will run all the unit tests
-- `cargo run -- [emulate/assemble] <file>` will run the program
-- `cargo build --release` will spit out an executable which can then be run in the usul
+- `cargo run -- [emulate/assemble] <file>` will run the program in your chosen mode
+- `cargo build --release` will spit out an executable which can then be run in the usual way on your system of choice
