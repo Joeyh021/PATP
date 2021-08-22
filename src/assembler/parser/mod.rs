@@ -1,28 +1,42 @@
 use crate::instruction::Instruction;
+use thiserror::Error;
 
-#[derive(Debug, PartialEq)]
+#[derive(Error, Debug, PartialEq)]
 pub enum ParseError {
-    Blank,
-    Error(String),
-}
+    #[error("Could not parse opcode on line {0}")]
+    OpcodeParseError(usize),
 
-impl ParseError {
-    fn err(err: &str) -> Self {
-        ParseError::Error(String::from(err))
-    }
+    #[error("Could not parse operand on line {0}")]
+    OperandParseError(usize),
+
+    #[error("Unexpected operand found on line {0}")]
+    UnexpectedOperand(usize),
+
+    #[error("Invalid opcode on line {0}")]
+    InvalidOpcode(usize),
+
+    #[error("Assembly error on line {0}")]
+    AssemblyError(usize),
+
+    #[error("Unknown parse error on line {0}")]
+    #[allow(dead_code)]
+    Unknown(usize),
+
+    #[error("Line {0} is blank")]
+    Blank(usize),
 }
 
 //take a line, parse the relevant symbols/words, return the instruction it represents
 //instructions are newline-seperated, and of format
 // opcode operand ; comment
 // returns Some(Instruction), or None if there's some parse error
-fn parse_line(line: &str) -> Result<Instruction, ParseError> {
+fn parse_line(line: &str, lineno: usize) -> Result<Instruction, ParseError> {
     //copy the instruction so we have ownership of it
     let mut line_slice: &str = line.trim();
 
     //if the line starts with a comment (;) or is entirely whitespace, then return a blank line
     if line_slice.starts_with(';') || line_slice.is_empty() {
-        return Err(ParseError::Blank);
+        return Err(ParseError::Blank(lineno));
     }
 
     let mut operand: Option<u8> = None;
@@ -43,11 +57,9 @@ fn parse_line(line: &str) -> Result<Instruction, ParseError> {
     let mut split = line_slice.trim().split_whitespace();
 
     //get the opcode as the first item in the iterator, error if not possible
-    let opcode = split
-        .next()
-        .ok_or(ParseError::err("Could not parse opcode"))?;
+    let opcode = split.next().ok_or(ParseError::OpcodeParseError(lineno))?;
 
-    //if theres a second item in the iterator and it can be parsed to a u8 , store it as the operand
+    //if theres a second item in the iterator and it can be parsed to a u8, store it as the operand
     if let Some(operand_str) = split.next() {
         operand = operand_str.parse::<u8>().ok()
     }
@@ -56,12 +68,12 @@ fn parse_line(line: &str) -> Result<Instruction, ParseError> {
     if (opcode == "CLEAR" || opcode == "DEC" || opcode == "INC" || opcode == "STOP")
         && operand != Option::None
     {
-        return Err(ParseError::err("No operand expected here"));
+        return Err(ParseError::UnexpectedOperand(lineno));
     }
 
     //iterator should now be empty no matter what
     if split.next().is_some() {
-        return Err(ParseError::err("Too many operands"));
+        return Err(ParseError::UnexpectedOperand(lineno));
     }
 
     //match opcodes to instructions
@@ -70,15 +82,15 @@ fn parse_line(line: &str) -> Result<Instruction, ParseError> {
         "CLEAR" => Instruction::Clear(0),
         "STOP" => Instruction::Clear(1),
         "INC" => Instruction::Inc,
-        "ADD" => Instruction::Add(operand.ok_or(ParseError::err("Could not parse operand"))?),
+        "ADD" => Instruction::Add(operand.ok_or(ParseError::OperandParseError(lineno))?),
         "DEC" => Instruction::Dec,
-        "JMP" => Instruction::Jump(operand.ok_or(ParseError::err("Could not parse operand"))?),
+        "JMP" => Instruction::Jump(operand.ok_or(ParseError::OperandParseError(lineno))?),
         "BUZ" | "BNZ" | "BZC" | "BNE" => {
-            Instruction::Bnz(operand.ok_or(ParseError::err("Could not parse operand"))?)
+            Instruction::Bnz(operand.ok_or(ParseError::OperandParseError(lineno))?)
         }
-        "LOAD" => Instruction::Load(operand.ok_or(ParseError::err("Could not parse operand"))?),
-        "STORE" => Instruction::Store(operand.ok_or(ParseError::err("Could not parse operand"))?),
-        _ => return Err(ParseError::err("Invalid opcode")),
+        "LOAD" => Instruction::Load(operand.ok_or(ParseError::OperandParseError(lineno))?),
+        "STORE" => Instruction::Store(operand.ok_or(ParseError::OperandParseError(lineno))?),
+        _ => return Err(ParseError::InvalidOpcode(lineno)),
     };
 
     Ok(instruction)
@@ -86,23 +98,21 @@ fn parse_line(line: &str) -> Result<Instruction, ParseError> {
 
 //the main parser function
 //takes a large string (the file) and returns a vec of instructions
-pub fn parse_file(file: &str) -> Result<Vec<u8>, String> {
+pub fn parse_file(file: &str) -> Result<Vec<u8>, ParseError> {
     //keeps track of symbols and their names/locations
     let mut binary: Vec<u8> = Vec::new();
 
     let mut instructions = file.lines().enumerate();
 
     while let Some((lineno, line)) = instructions.next() {
-        match parse_line(&line).map(|i| i.assemble()) {
-            Err(ParseError::Blank) => (),
-            Err(ParseError::Error(str)) => {
-                return Err(format!("Parse error on line {}: {}", lineno, str))
-            }
-            Ok(None) => return Err(format!("Assembly error on line {}", lineno + 1)),
+        match parse_line(&line, lineno).map(|i| i.assemble()) {
+            Err(ParseError::Blank(_)) => (),
+            Err(e) => return Err(e),
+            Ok(None) => return Err(ParseError::AssemblyError(lineno)),
             Ok(Some(byte)) => binary.push(byte),
         }
     }
-    return Ok(binary);
+    Ok(binary)
 }
 
 #[cfg(test)]

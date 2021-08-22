@@ -1,21 +1,19 @@
-use std::{env, format, path::Path};
-
+use anyhow::Result;
+use std::{env, path::Path};
 mod assembler;
 mod emulator;
 mod instruction;
 
-fn main() -> Result<(), String> {
+fn main() -> Result<()> {
     let mut args = env::args();
     args.next();
-    let cmd = args
-        .next()
-        .ok_or("Please specify either assemble or emulate")?;
+    let cmd = args.next().unwrap();
 
-    let file = args.next().ok_or("Please specify a file")?;
+    let file = args.next().unwrap();
 
     match cmd.as_str() {
         "assemble" => assembler::assemble(Path::new(&file)),
         "emulate" => emulator::emulate(Path::new(&file)),
-        _ => Err(format!("Command {} not recognised.", cmd)),
+        _ => panic!("Command {} not recognised.", cmd),
     }
 }

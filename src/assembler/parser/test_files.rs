@@ -21,16 +21,14 @@ fn parse_file_one() {
 fn parse_file_errors() {
     assert_eq!(
         parse_file(" CLEAR \n ADD 78"),
-        Err(String::from("Assembly error on line 2"))
+        Err(ParseError::AssemblyError(1))
     );
     assert_eq!(
         parse_file(" CLEAR \n ADD x"),
-        Err(String::from(
-            "Parse error on line 1: Could not parse operand"
-        ))
+        Err(ParseError::OperandParseError(1))
     );
     assert_eq!(
         parse_file(" CLEAR \n SUB 12"),
-        Err(String::from("Parse error on line 1: Invalid opcode"))
+        Err(ParseError::InvalidOpcode(1))
     );
 }
