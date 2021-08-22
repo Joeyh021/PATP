@@ -102,9 +102,7 @@ pub fn parse_file(file: &str) -> Result<Vec<u8>, ParseError> {
     //keeps track of symbols and their names/locations
     let mut binary: Vec<u8> = Vec::new();
 
-    let mut instructions = file.lines().enumerate();
-
-    while let Some((lineno, line)) = instructions.next() {
+    for (lineno, line) in file.lines().enumerate() {
         match parse_line(&line, lineno).map(|i| i.assemble()) {
             Err(ParseError::Blank(_)) => (),
             Err(e) => return Err(e),
