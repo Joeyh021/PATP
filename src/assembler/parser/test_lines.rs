@@ -3,33 +3,33 @@ use super::*;
 //test basic opcode operand lines
 #[test]
 fn parse_line_basic() {
-    assert_eq!(parse_line("CLEAR"), Ok(Instruction::CLEAR(0)));
+    assert_eq!(parse_line("CLEAR"), Ok(Instruction::Clear(0)));
 
-    assert_eq!(parse_line("ADD 12"), Ok(Instruction::ADD(12)));
-    assert_eq!(parse_line("BUZ 30"), Ok(Instruction::BNZ(30)));
-    assert_eq!(parse_line("STORE 18"), Ok(Instruction::STORE(18)));
-    assert_eq!(parse_line("STOP"), Ok(Instruction::CLEAR(1)));
+    assert_eq!(parse_line("ADD 12"), Ok(Instruction::Add(12)));
+    assert_eq!(parse_line("BUZ 30"), Ok(Instruction::Bnz(30)));
+    assert_eq!(parse_line("STORE 18"), Ok(Instruction::Store(18)));
+    assert_eq!(parse_line("STOP"), Ok(Instruction::Clear(1)));
 }
 
 //test lines with comments and some weird whitespacing
 #[test]
 fn parse_line_comments() {
-    assert_eq!(parse_line("CLEAR;"), Ok(Instruction::CLEAR(0)));
+    assert_eq!(parse_line("CLEAR;"), Ok(Instruction::Clear(0)));
     assert_eq!(
         parse_line("DEC       ; test comment  "),
-        Ok(Instruction::DEC)
+        Ok(Instruction::Dec)
     );
     assert_eq!(
         parse_line("ADD  100     ; test comment  "),
-        Ok(Instruction::ADD(100))
+        Ok(Instruction::Add(100))
     );
     assert_eq!(
         parse_line("   LOAD  40     ; test comment DEC  "),
-        Ok(Instruction::LOAD(40))
+        Ok(Instruction::Load(40))
     );
     assert_eq!(
         parse_line("   LOAD  40     ;; test;  "),
-        Ok(Instruction::LOAD(40))
+        Ok(Instruction::Load(40))
     );
 }
 

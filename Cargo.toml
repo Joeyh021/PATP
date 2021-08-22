@@ -6,3 +6,5 @@ edition = "2018"
 repository = "https://github.com/Joeyh021/PATP"
 
  
+[dependencies]
+thiserror = "1.0"

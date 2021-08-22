@@ -1,9 +1,9 @@
 mod cpu;
-use cpu::CPU;
+use cpu::Cpu;
 use std::{fs, path::Path};
 
-fn execute_program(program: &[u8]) -> CPU {
-    let mut state = CPU::new().load(program);
+fn execute_program(program: &[u8]) -> Cpu {
+    let mut state = Cpu::new().load(program);
     loop {
         let instruction = state.memory[state.pc as usize];
         let new_state = state.execute(instruction);
@@ -20,6 +20,6 @@ pub fn emulate(path: &Path) -> Result<(), String> {
         return Err(String::from("Program is too large to load."));
     }
     let final_state = execute_program(&file);
-    println!("Final cpu state \n : {:?}", final_state);
+    println!("Final CPU State: \n{}", final_state);
     Ok(())
 }

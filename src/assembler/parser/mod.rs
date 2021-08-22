@@ -21,7 +21,7 @@ fn parse_line(line: &str) -> Result<Instruction, ParseError> {
     let mut line_slice: &str = line.trim();
 
     //if the line starts with a comment (;) or is entirely whitespace, then return a blank line
-    if line_slice.starts_with(';') || line_slice == "" {
+    if line_slice.starts_with(';') || line_slice.is_empty() {
         return Err(ParseError::Blank);
     }
 
@@ -60,28 +60,28 @@ fn parse_line(line: &str) -> Result<Instruction, ParseError> {
     }
 
     //iterator should now be empty no matter what
-    if let Some(_) = split.next() {
+    if split.next().is_some() {
         return Err(ParseError::err("Too many operands"));
     }
 
     //match opcodes to instructions
     //if we need an opcode and we cant get one, an error is returned here
     let instruction = match opcode {
-        "CLEAR" => Instruction::CLEAR(0),
-        "STOP" => Instruction::CLEAR(1),
-        "INC" => Instruction::INC,
-        "ADD" => Instruction::ADD(operand.ok_or(ParseError::err("Could not parse operand"))?),
-        "DEC" => Instruction::DEC,
-        "JMP" => Instruction::JMP(operand.ok_or(ParseError::err("Could not parse operand"))?),
+        "CLEAR" => Instruction::Clear(0),
+        "STOP" => Instruction::Clear(1),
+        "INC" => Instruction::Inc,
+        "ADD" => Instruction::Add(operand.ok_or(ParseError::err("Could not parse operand"))?),
+        "DEC" => Instruction::Dec,
+        "JMP" => Instruction::Jump(operand.ok_or(ParseError::err("Could not parse operand"))?),
         "BUZ" | "BNZ" | "BZC" | "BNE" => {
-            Instruction::BNZ(operand.ok_or(ParseError::err("Could not parse operand"))?)
+            Instruction::Bnz(operand.ok_or(ParseError::err("Could not parse operand"))?)
         }
-        "LOAD" => Instruction::LOAD(operand.ok_or(ParseError::err("Could not parse operand"))?),
-        "STORE" => Instruction::STORE(operand.ok_or(ParseError::err("Could not parse operand"))?),
+        "LOAD" => Instruction::Load(operand.ok_or(ParseError::err("Could not parse operand"))?),
+        "STORE" => Instruction::Store(operand.ok_or(ParseError::err("Could not parse operand"))?),
         _ => return Err(ParseError::err("Invalid opcode")),
     };
 
-    return Ok(instruction);
+    Ok(instruction)
 }
 
 //the main parser function
