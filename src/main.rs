@@ -1,19 +1,22 @@
 use anyhow::Result;
-use std::{env, path::Path};
+use std::path::Path;
+
 mod assembler;
+mod cli;
 mod emulator;
 mod instruction;
 
 fn main() -> Result<()> {
-    let mut args = env::args();
-    args.next();
-    let cmd = args.next().unwrap();
+    let matches = cli::args().get_matches();
 
-    let file = args.next().unwrap();
-
-    match cmd.as_str() {
-        "assemble" => assembler::assemble(Path::new(&file)),
-        "emulate" => emulator::emulate(Path::new(&file)),
-        _ => panic!("Command {} not recognised.", cmd),
+    if matches.is_present("emulate") {
+        emulator::emulate(Path::new(matches.value_of("emulate").unwrap()))?
+    } else if matches.is_present("assemble") {
+        assembler::assemble(Path::new(matches.value_of("assemble").unwrap()))?
+    } else if matches.is_present("run") {
+        todo!()
+    } else {
+        panic!()
     }
+    Ok(())
 }

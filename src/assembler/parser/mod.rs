@@ -103,7 +103,7 @@ pub fn parse_file(file: &str) -> Result<Vec<u8>, ParseError> {
     let mut binary: Vec<u8> = Vec::new();
 
     for (lineno, line) in file.lines().enumerate() {
-        match parse_line(&line, lineno).map(|i| i.assemble()) {
+        match parse_line(line, lineno).map(|i| i.assemble()) {
             Err(ParseError::Blank(_)) => (),
             Err(e) => return Err(e),
             Ok(None) => return Err(ParseError::AssemblyError(lineno)),
