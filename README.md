@@ -1,6 +1,6 @@
 # PATP toolkit
 
-This is an assembler and emulator for the PATP (Pedagogically Advanced Teaching Processor), a simple microprocessor designed by Dr Matthew Leeke for teaching CS132 at The University of Warwick. The processor specification and assembly language documentation is outlined in [the specification](Specification.md).
+This is an assembler and emulator for the PATP (Pedagogically Advanced Teaching Processor), a simple microprocessor designed for teaching CS132 Computer Organisation and Architecture at The University of Warwick. The processor specification and assembly language documentation is outlined in [the specification](Specification.md).
 
 ## Usage
 
