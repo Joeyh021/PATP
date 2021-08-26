@@ -15,7 +15,7 @@ fn main() -> Result<()> {
     } else if matches.is_present("assemble") {
         assembler::assemble_file(Path::new(matches.value_of("assemble").unwrap()))?
     } else if matches.is_present("run") {
-        run::run_file(Path::new(matches.value_of("assemble").unwrap()))?
+        run::run_file(Path::new(matches.value_of("run").unwrap()))?
     } else {
         //shouldn't happen if cli parser does its job
         //unwraps should never error either
