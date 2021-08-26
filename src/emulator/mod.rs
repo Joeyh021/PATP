@@ -1,10 +1,15 @@
 mod cpu;
+mod error;
+mod instruction;
+
 use anyhow::Result;
 use cpu::Cpu;
+pub use error::CPUError;
+pub use instruction::Instruction;
 use std::{fs, path::Path};
 
 pub fn execute_program(program: &[u8]) -> Result<Cpu> {
-    let mut state = Cpu::new().load(program);
+    let mut state = Cpu::new().load(program)?;
     loop {
         let instruction = state.memory[state.pc as usize];
         let new_state = state.execute(instruction);

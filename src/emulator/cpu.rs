@@ -1,4 +1,6 @@
-use crate::instruction::Instruction;
+use super::error::CPUError;
+use super::Instruction;
+use anyhow::Result;
 use std::fmt;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -83,9 +85,13 @@ impl Cpu {
     }
 
     //takes a CPU and loads a program into it's memory
-    pub fn load(mut self, program: &[u8]) -> Cpu {
-        self.memory[..program.len()].copy_from_slice(program);
-        self
+    pub fn load(mut self, program: &[u8]) -> Result<Cpu, CPUError> {
+        if program.len() > 32 {
+            Err(CPUError::ProgramTooLarge)
+        } else {
+            self.memory[..program.len()].copy_from_slice(program);
+            Ok(self)
+        }
     }
 }
 
@@ -93,7 +99,6 @@ impl Cpu {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::instruction::Instruction;
 
     #[test]
     fn test_cpu_execute_single() {

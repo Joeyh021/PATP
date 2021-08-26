@@ -1,4 +1,4 @@
-use crate::instruction::Instruction;
+use crate::emulator::Instruction;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
@@ -14,9 +14,6 @@ pub enum ParseError {
 
     #[error("Invalid opcode on line {0}")]
     InvalidOpcode(usize),
-
-    #[error("Assembly error on line {0}")]
-    AssemblyError(usize),
 
     #[error("Unknown parse error on line {0}")]
     #[allow(dead_code)]
@@ -98,19 +95,18 @@ fn parse_line(line: &str, lineno: usize) -> Result<Instruction, ParseError> {
 
 //the main parser function
 //takes a large string (the file) and returns a vec of instructions
-pub fn parse_file(file: &str) -> Result<Vec<u8>, ParseError> {
+pub fn parse_file(file: &str) -> Result<Vec<Instruction>, ParseError> {
     //keeps track of symbols and their names/locations
-    let mut binary: Vec<u8> = Vec::new();
+    let mut program: Vec<Instruction> = Vec::new();
 
     for (lineno, line) in file.lines().enumerate() {
-        match parse_line(line, lineno).map(|i| i.assemble()) {
+        match parse_line(line, lineno) {
             Err(ParseError::Blank(_)) => (),
             Err(e) => return Err(e),
-            Ok(None) => return Err(ParseError::AssemblyError(lineno)),
-            Ok(Some(byte)) => binary.push(byte),
+            Ok(instruction) => program.push(instruction),
         }
     }
-    Ok(binary)
+    Ok(program)
 }
 
 #[cfg(test)]

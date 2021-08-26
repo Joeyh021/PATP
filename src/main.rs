@@ -4,7 +4,6 @@ use std::path::Path;
 mod assembler;
 mod cli;
 mod emulator;
-mod instruction;
 mod run;
 
 fn main() -> Result<()> {
