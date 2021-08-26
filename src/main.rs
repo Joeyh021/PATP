@@ -5,17 +5,20 @@ mod assembler;
 mod cli;
 mod emulator;
 mod instruction;
+mod run;
 
 fn main() -> Result<()> {
     let matches = cli::args().get_matches();
 
     if matches.is_present("emulate") {
-        emulator::emulate(Path::new(matches.value_of("emulate").unwrap()))?
+        emulator::execute_file(Path::new(matches.value_of("emulate").unwrap()))?
     } else if matches.is_present("assemble") {
-        assembler::assemble(Path::new(matches.value_of("assemble").unwrap()))?
+        assembler::assemble_file(Path::new(matches.value_of("assemble").unwrap()))?
     } else if matches.is_present("run") {
-        todo!()
+        run::run_file(Path::new(matches.value_of("assemble").unwrap()))?
     } else {
+        //shouldn't happen if cli parser does its job
+        //unwraps should never error either
         panic!()
     }
     Ok(())
