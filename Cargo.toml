@@ -1,10 +1,12 @@
 [package]
 name = "patp"
 version = "0.1.0"
-authors = ["Joe Harrison <joeyh021@icloud.co,>"]
+authors = ["Joe Harrison <joeyh021@icloud.com>"]
 edition = "2018"
 repository = "https://github.com/Joeyh021/PATP"
-
+license = "MIT"
+description = "An emulator and assembler for the PATP microprocessor"
+readme = "README.md"
  
 [dependencies]
 thiserror = "1.0"
