@@ -2,9 +2,9 @@ use clap::{App, Arg, ArgGroup};
 
 pub fn args() -> clap::App<'static, 'static> {
     App::new("PATP Toolkit")
-        .version("0.1.0")
+        .version("0.1.2")
         .author("Joey Harrison")
-        .about("An emulator and assembler for Matt Leeke's PATP")
+        .about("An emulator and assembler for the Pedagogically Advanced Teaching Processor")
         .arg(
             Arg::with_name("emulate")
                 .takes_value(true)
