@@ -5,7 +5,7 @@ authors = ["Joe Harrison <joeyh021@icloud.com>"]
 edition = "2021"
 repository = "https://github.com/Joeyh021/PATP"
 license = "MIT"
-description = "An emulator and assembler for the PATP microprocessor"
+description = "An emulator and assembler for the Pedagogically Advanced Teaching Processor"
 readme = "README.md"
  
 [dependencies]

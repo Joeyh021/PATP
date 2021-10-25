@@ -1,10 +1,13 @@
 use clap::{App, Arg, ArgGroup};
 
 pub fn args() -> clap::App<'static, 'static> {
+    let version = env!("CARGO_PKG_VERSION");
+    let author = env!("CARGO_PKG_AUTHORS");
+    let description = env!("CARGO_PKG_DESCRIPTION");
     App::new("PATP Toolkit")
-        .version("0.1.2")
-        .author("Joey Harrison")
-        .about("An emulator and assembler for the Pedagogically Advanced Teaching Processor")
+        .version(version)
+        .author(author)
+        .about(description)
         .arg(
             Arg::with_name("emulate")
                 .takes_value(true)
