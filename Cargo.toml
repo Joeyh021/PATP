@@ -1,8 +1,8 @@
 [package]
 name = "patp"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Joe Harrison <joeyh021@icloud.com>"]
-edition = "2018"
+edition = "2021"
 repository = "https://github.com/Joeyh021/PATP"
 license = "MIT"
 description = "An emulator and assembler for the PATP microprocessor"
