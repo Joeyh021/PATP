@@ -1,62 +1,78 @@
-use crate::instruction::Instruction;
+use super::error::CPUError;
+use super::Instruction;
+use anyhow::Result;
+use std::fmt;
 
-#[derive(Debug, PartialEq, Eq)]
-pub struct CPU {
-    memory: Box<[u8; 32]>,
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct Cpu {
+    pub memory: [u8; 32],
     z: bool,
     register: u8,
-    pc: u8,
+    pub pc: u8,
 }
 
-impl CPU {
-    pub fn new() -> CPU {
-        CPU {
-            memory: Box::new([0; 32]),
+impl fmt::Display for Cpu {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Program Counter: {} \nRegister: {} \nZ flag: {} \nMemory: {:?}",
+            self.pc, self.register, self.z as i32, self.memory
+        )
+    }
+}
+impl Cpu {
+    pub fn new() -> Cpu {
+        Cpu {
+            memory: [0; 32],
             z: true,
             register: 0,
             pc: 0,
         }
     }
 
-    //mutates the given state 
-    pub fn execute(&mut self, byte: u8) -> bool {
+    //executes a single instruction, consuming the old state and returning a new one
+    //returns None when finished executing
+    pub fn execute(&self, byte: u8) -> Option<Cpu> {
         let instruction = Instruction::disassemble(byte);
+
+        //make a new state from the old one
+        let mut new_state: Cpu = self.clone();
 
         //increase pc
         self.pc = Self::inc_pc(self.pc);
 
         match instruction {
-            Instruction::CLEAR(0) => {
-                self.register = 0;
-                self.z = true;
+            Instruction::Clear(0) => {
+                new_state.register = 0;
+                new_state.z = true;
             }
-            Instruction::CLEAR(_) =>{
-                return false;
+            Instruction::Clear(_) => {
+                return None;
             }
-            Instruction::INC => {
-                self.register = u8::wrapping_add(self.register, 1);
-                self.z = if self.register == 0 { true } else { false };
+            Instruction::Inc => {
+                new_state.register = u8::wrapping_add(self.register, 1);
+                new_state.z = new_state.register == 0;
             }
-            Instruction::ADD(op) => {
-                self.register = u8::wrapping_add(self.register, op);
-                self.z = if self.register == 0 { true } else { false };
+            Instruction::Add(op) => {
+                new_state.register = u8::wrapping_add(self.register, op);
+                new_state.z = new_state.register == 0;
             }
-            Instruction::DEC => {
-                self.register = u8::wrapping_sub(self.register, 1);
-                self.z = if self.register == 0 { true } else { false };
+            Instruction::Dec => {
+                new_state.register = u8::wrapping_sub(self.register, 1);
+                new_state.z = new_state.register == 0;
             }
-            Instruction::JMP(op) => self.pc = op,
-            Instruction::BNZ(op) => {
+            Instruction::Jump(op) => new_state.pc = op,
+            Instruction::Bnz(op) => {
                 if !self.z {
                     self.pc = op
                 }
             }
             //cant refer to old memory, but can just refer to new instead because we dont modify it anywhere else
-            Instruction::LOAD(op) => self.register = self.memory[op as usize],
-            Instruction::STORE(op) => self.memory[op as usize] = self.register,
+            Instruction::Load(op) => new_state.register = new_state.memory[op as usize],
+            Instruction::Store(op) => new_state.memory[op as usize] = self.register,
         }
 
-        return true;
+        Some(new_state)
     }
 
     //wrap at 5 bits (cant go past 31)
@@ -67,190 +83,204 @@ impl CPU {
             _ => old + 1,
         }
     }
+
+    //takes a CPU and loads a program into it's memory
+    pub fn load(mut self, program: &[u8]) -> Result<Cpu, CPUError> {
+        if program.len() > 32 {
+            Err(CPUError::ProgramTooLarge)
+        } else {
+            self.memory[..program.len()].copy_from_slice(program);
+            Ok(self)
+        }
+    }
 }
 
+//unit tests for cpu execution
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::instruction::Instruction;
 
     #[test]
     fn test_cpu_execute_single() {
         // all easy tests of a single instruction
         
         assert_eq!(
-            CPU::execute(CPU::new(), Instruction::CLEAR.assemble()),
-            CPU {
+            Cpu::execute(&Cpu::new(), Instruction::Clear(0).assemble().unwrap()),
+            Some(Cpu {
                 pc: 1,
-                ..CPU::new()
-            }
+                ..Cpu::new()
+            })
         );
         assert_eq!(
-            CPU::execute(CPU::new(), Instruction::INC.assemble()),
-            CPU {
+            Cpu::execute(&Cpu::new(), Instruction::Inc.assemble().unwrap()),
+            Some(Cpu {
                 pc: 1,
                 register: 1,
                 z: false,
-                ..CPU::new()
-            }
+                ..Cpu::new()
+            })
         );
         assert_eq!(
-            CPU::execute(CPU::new(), Instruction::ADD(12).assemble()),
-            CPU {
+            Cpu::execute(&Cpu::new(), Instruction::Add(12).assemble().unwrap()),
+            Some(Cpu {
                 register: 12,
                 pc: 1,
                 z: false,
-                ..CPU::new()
-            }
+                ..Cpu::new()
+            })
         );
         assert_eq!(
-            CPU::execute(CPU::new(), Instruction::DEC.assemble()),
-            CPU {
+            Cpu::execute(&Cpu::new(), Instruction::Dec.assemble().unwrap()),
+            Some(Cpu {
                 register: 255,
                 pc: 1,
                 z: false,
-                ..CPU::new()
-            }
+                ..Cpu::new()
+            })
         );
         assert_eq!(
-            CPU::execute(CPU::new(), Instruction::JMP(17).assemble()),
-            CPU {
+            Cpu::execute(&Cpu::new(), Instruction::Jump(17).assemble().unwrap()),
+            Some(Cpu {
                 pc: 17,
-                ..CPU::new()
-            }
+                ..Cpu::new()
+            })
         );
 
         //bnz when z is true
         //shouldn't branch
         assert_eq!(
-            CPU::execute(CPU::new(), Instruction::BNZ(21).assemble()),
-            CPU {
+            Cpu::execute(&Cpu::new(), Instruction::Bnz(21).assemble().unwrap()),
+            Some(Cpu {
                 pc: 1,
-                ..CPU::new()
-            }
+                ..Cpu::new()
+            })
         );
 
         //bnz when z is false
         //should branch
         assert_eq!(
-            CPU::execute(
-                CPU {
+            Cpu::execute(
+                &Cpu {
                     z: false,
-                    ..CPU::new()
+                    ..Cpu::new()
                 },
-                Instruction::BNZ(21).assemble()
+                Instruction::Bnz(21).assemble().unwrap()
             ),
-            CPU {
+            Some(Cpu {
                 pc: 21,
                 z: false,
-                ..CPU::new()
-            }
+                ..Cpu::new()
+            })
         );
 
         //store number 11 at address 1
         assert_eq!(
-            CPU::execute(
-                CPU {
+            Cpu::execute(
+                &Cpu {
                     register: 11,
-                    ..CPU::new()
+                    ..Cpu::new()
                 },
-                Instruction::STORE(1).assemble()
+                Instruction::Store(1).assemble().unwrap()
             ),
-            CPU {
+            Some(Cpu {
                 pc: 1,
                 register: 11,
-                memory: Box::new([
+                memory: [
                     0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0, 0, 0, 0, 0, 0
-                ]),
-                ..CPU::new()
-            }
+                ],
+                ..Cpu::new()
+            })
         );
 
         //load number 11 from address 2
         assert_eq!(
-            CPU::execute(
-                CPU {
-                    memory: Box::new([
+            Cpu::execute(
+                &Cpu {
+                    memory: [
                         0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                         0, 0, 0, 0, 0, 0, 0
-                    ]),
-                    ..CPU::new()
+                    ],
+                    ..Cpu::new()
                 },
-                Instruction::LOAD(2).assemble()
+                Instruction::Load(2).assemble().unwrap()
             ),
-            CPU {
+            Some(Cpu {
                 pc: 1,
                 register: 11,
-                memory: Box::new([
+                memory: [
                     0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0, 0, 0, 0, 0, 0
-                ]),
-                ..CPU::new()
-            }
+                ],
+                ..Cpu::new()
+            })
         );
     }
 
     #[test]
     fn test_cpu_execute_program() {
         //runs a few steps in sequence, testing the CPU state is as it should be at each step
-        let mut cpu = CPU::new();
-        cpu = cpu.execute(Instruction::INC.assemble());
+        let mut cpu = Cpu::new();
+        cpu = cpu.execute(Instruction::Inc.assemble().unwrap()).unwrap();
 
         assert_eq!(
-            CPU {
+            Cpu {
                 pc: 1,
                 register: 1,
                 z: false,
-                ..CPU::new()
+                ..Cpu::new()
             },
             cpu
         );
 
-        cpu = cpu.execute(Instruction::INC.assemble());
+        cpu = cpu.execute(Instruction::Inc.assemble().unwrap()).unwrap();
 
         assert_eq!(
-            CPU {
+            Cpu {
                 pc: 2,
                 register: 2,
                 z: false,
-                ..CPU::new()
+                ..Cpu::new()
             },
             cpu
         );
 
-        cpu = cpu.execute(Instruction::ADD(9).assemble());
+        cpu = cpu
+            .execute(Instruction::Add(9).assemble().unwrap())
+            .unwrap();
 
         assert_eq!(
-            CPU {
+            Cpu {
                 pc: 3,
                 register: 11,
                 z: false,
-                ..CPU::new()
+                ..Cpu::new()
             },
             cpu
         );
 
-        cpu = cpu.execute(Instruction::DEC.assemble());
+        cpu = cpu.execute(Instruction::Dec.assemble().unwrap()).unwrap();
 
         assert_eq!(
-            CPU {
+            Cpu {
                 pc: 4,
                 register: 10,
                 z: false,
-                ..CPU::new()
+                ..Cpu::new()
             },
             cpu
         );
 
-        cpu = cpu.execute(Instruction::JMP(20).assemble());
+        cpu = cpu
+            .execute(Instruction::Jump(20).assemble().unwrap())
+            .unwrap();
 
         assert_eq!(
-            CPU {
+            Cpu {
                 pc: 20,
                 register: 10,
                 z: false,
-                ..CPU::new()
+                ..Cpu::new()
             },
             cpu
         );
@@ -260,21 +290,27 @@ mod test {
     fn test_cpu_execute_edge_cases() {
         //test wraparound
         assert_eq!(
-            CPU::execute(
-                CPU {
+            Cpu::execute(
+                &Cpu {
                     pc: 0,
                     register: 255,
                     z: false,
-                    ..CPU::new()
+                    ..Cpu::new()
                 },
-                Instruction::INC.assemble()
+                Instruction::Inc.assemble().unwrap()
             ),
-            CPU {
+            Some(Cpu {
                 pc: 1,
                 register: 0,
                 z: true,
-                ..CPU::new()
-            }
+                ..Cpu::new()
+            })
+        );
+
+        //test execution halts on a stop
+        assert_eq!(
+            Cpu::execute(&Cpu::new(), Instruction::Clear(1).assemble().unwrap()),
+            None
         );
     }
 }

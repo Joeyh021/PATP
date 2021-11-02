@@ -1,0 +1,5 @@
+CLEAR
+INC 
+INC 
+DEC
+STORE 5; stores a STOP instruction at 0x05 so the program halts

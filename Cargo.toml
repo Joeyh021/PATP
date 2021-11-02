@@ -1,7 +1,14 @@
 [package]
 name = "patp"
-version = "0.1.0"
-authors = ["Joe Harrison <josephharrison1@me.com>"]
-edition = "2018"
-
-
+version = "0.1.2"
+authors = ["Joe Harrison <joeyh021@icloud.com>"]
+edition = "2021"
+repository = "https://github.com/Joeyh021/PATP"
+license = "MIT"
+description = "An emulator and assembler for the Pedagogically Advanced Teaching Processor"
+readme = "README.md"
+ 
+[dependencies]
+thiserror = "1.0"
+anyhow = "1.0"
+clap = "2.33.3"
