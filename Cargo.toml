@@ -7,8 +7,8 @@ repository = "https://github.com/Joeyh021/PATP"
 license = "MIT"
 description = "An emulator and assembler for the Pedagogically Advanced Teaching Processor"
 readme = "README.md"
- 
+
 [dependencies]
 thiserror = "1.0"
 anyhow = "1.0"
-clap = "2.33.3"
+clap = { version = "3.1.18", features = ["derive", "cargo"] }
