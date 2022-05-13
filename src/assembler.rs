@@ -1,14 +1,13 @@
+use crate::parser::parse_file;
 use anyhow::Result;
-pub use parser::parse_file;
 use std::{fs, path::Path};
 
 use crate::emulator::{CPUError, Instruction};
-mod parser;
 
 pub fn assemble_file(path: &Path) -> Result<()> {
     let file = fs::read_to_string(path)?;
 
-    let binary = assemble(parser::parse_file(&file)?)?;
+    let binary = assemble(parse_file(&file)?)?;
 
     //todo - come up with something to return this error instead of unwrapping
     let outfile = path.file_stem().unwrap();

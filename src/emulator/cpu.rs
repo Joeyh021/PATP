@@ -3,7 +3,7 @@ use super::Instruction;
 use anyhow::Result;
 use std::fmt;
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Default)]
 pub struct Cpu {
     pub memory: [u8; 32],
     z: bool,
@@ -22,17 +22,12 @@ impl fmt::Display for Cpu {
 }
 impl Cpu {
     pub fn new() -> Cpu {
-        Cpu {
-            memory: [0; 32],
-            z: true,
-            register: 0,
-            pc: 0,
-        }
+        Cpu::default()
     }
 
     //executes a single instruction, consuming the old state and returning a new one
     //returns None when finished executing
-    pub fn execute(&self, byte: u8) -> Option<Cpu> {
+    pub fn execute(&mut self, byte: u8) -> Option<Cpu> {
         let instruction = Instruction::disassemble(byte);
 
         //make a new state from the old one
@@ -103,16 +98,16 @@ mod test {
     #[test]
     fn test_cpu_execute_single() {
         // all easy tests of a single instruction
-        
+
         assert_eq!(
-            Cpu::execute(&Cpu::new(), Instruction::Clear(0).assemble().unwrap()),
+            Cpu::execute(&mut Cpu::new(), Instruction::Clear(0).assemble().unwrap()),
             Some(Cpu {
                 pc: 1,
                 ..Cpu::new()
             })
         );
         assert_eq!(
-            Cpu::execute(&Cpu::new(), Instruction::Inc.assemble().unwrap()),
+            Cpu::execute(&mut Cpu::new(), Instruction::Inc.assemble().unwrap()),
             Some(Cpu {
                 pc: 1,
                 register: 1,
@@ -121,7 +116,7 @@ mod test {
             })
         );
         assert_eq!(
-            Cpu::execute(&Cpu::new(), Instruction::Add(12).assemble().unwrap()),
+            Cpu::execute(&mut Cpu::new(), Instruction::Add(12).assemble().unwrap()),
             Some(Cpu {
                 register: 12,
                 pc: 1,
@@ -130,7 +125,7 @@ mod test {
             })
         );
         assert_eq!(
-            Cpu::execute(&Cpu::new(), Instruction::Dec.assemble().unwrap()),
+            Cpu::execute(&mut Cpu::new(), Instruction::Dec.assemble().unwrap()),
             Some(Cpu {
                 register: 255,
                 pc: 1,
@@ -139,7 +134,7 @@ mod test {
             })
         );
         assert_eq!(
-            Cpu::execute(&Cpu::new(), Instruction::Jump(17).assemble().unwrap()),
+            Cpu::execute(&mut Cpu::new(), Instruction::Jump(17).assemble().unwrap()),
             Some(Cpu {
                 pc: 17,
                 ..Cpu::new()
@@ -149,7 +144,7 @@ mod test {
         //bnz when z is true
         //shouldn't branch
         assert_eq!(
-            Cpu::execute(&Cpu::new(), Instruction::Bnz(21).assemble().unwrap()),
+            Cpu::execute(&mut Cpu::new(), Instruction::Bnz(21).assemble().unwrap()),
             Some(Cpu {
                 pc: 1,
                 ..Cpu::new()
@@ -160,7 +155,7 @@ mod test {
         //should branch
         assert_eq!(
             Cpu::execute(
-                &Cpu {
+                &mut Cpu {
                     z: false,
                     ..Cpu::new()
                 },
@@ -176,7 +171,7 @@ mod test {
         //store number 11 at address 1
         assert_eq!(
             Cpu::execute(
-                &Cpu {
+                &mut Cpu {
                     register: 11,
                     ..Cpu::new()
                 },
@@ -196,7 +191,7 @@ mod test {
         //load number 11 from address 2
         assert_eq!(
             Cpu::execute(
-                &Cpu {
+                &mut Cpu {
                     memory: [
                         0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                         0, 0, 0, 0, 0, 0, 0
@@ -291,7 +286,7 @@ mod test {
         //test wraparound
         assert_eq!(
             Cpu::execute(
-                &Cpu {
+                &mut Cpu {
                     pc: 0,
                     register: 255,
                     z: false,
@@ -309,7 +304,7 @@ mod test {
 
         //test execution halts on a stop
         assert_eq!(
-            Cpu::execute(&Cpu::new(), Instruction::Clear(1).assemble().unwrap()),
+            Cpu::execute(&mut Cpu::new(), Instruction::Clear(1).assemble().unwrap()),
             None
         );
     }
