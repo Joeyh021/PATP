@@ -1,7 +1,5 @@
+use crate::emulator::CPUError;
 use std::fmt::Display;
-
-use super::CPUError;
-
 //the type to represent instructions
 #[derive(Debug, PartialEq, Eq)]
 pub enum Instruction {

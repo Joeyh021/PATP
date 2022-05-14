@@ -1,11 +1,10 @@
 mod cpu;
 mod error;
-mod instruction;
 
+pub use crate::instruction::Instruction;
 use anyhow::Result;
 use cpu::Cpu;
 pub use error::CPUError;
-pub use instruction::Instruction;
 use std::{fs, path::Path};
 
 pub fn execute_program(program: &[u8]) -> Result<Cpu> {

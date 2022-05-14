@@ -4,7 +4,7 @@ use super::*;
 
 //test basic opcode operand lines
 #[test]
-fn parse_line_basic() {
+fn basic_operands() {
     assert_eq!(parse_file("CLEAR"), Ok(vec![Instruction::Clear(0)]));
 
     assert_eq!(parse_file("ADD 12"), Ok(vec![Instruction::Add(12)]));
@@ -18,7 +18,7 @@ fn parse_line_basic() {
 
 //test lines with comments and some weird whitespacing
 #[test]
-fn parse_line_comments() {
+fn comments() {
     assert_eq!(parse_file("CLEAR;"), Ok(vec![Instruction::Clear(0)]));
     assert_eq!(
         parse_file("DEC       ; test comment  "),
@@ -40,7 +40,7 @@ fn parse_line_comments() {
 
 //some lines that should return blanks
 #[test]
-fn parse_line_blanks() {
+fn blanks() {
     assert_eq!(parse_file(";     "), Ok(vec![]));
     assert_eq!(parse_file("            ;     "), Ok(vec![]));
     assert_eq!(parse_file("                 "), Ok(vec![]));
@@ -52,7 +52,7 @@ fn parse_line_blanks() {
 
 //make sure we get the right errors
 #[test]
-fn parse_line_errors() {
+fn errors() {
     assert_eq!(parse_file("ABC"), Err(ParseError::InvalidOpcode(0)));
     assert_eq!(parse_file("DEC 12"), Err(ParseError::UnexpectedOperand(0)));
     assert_eq!(
@@ -71,5 +71,35 @@ fn parse_line_errors() {
     assert_eq!(
         parse_file("DEEZ NUTS ; haha"),
         Err(ParseError::InvalidOpcode(0))
+    );
+    assert_eq!(
+        parse_file(" CLEAR \n ADD x"),
+        Err(ParseError::OperandError(1))
+    );
+    assert_eq!(
+        parse_file(" CLEAR \n SUB 12"),
+        Err(ParseError::InvalidOpcode(1))
+    );
+}
+
+#[test]
+fn file_empty() {
+    assert_eq!(parse_file(""), Ok(Vec::new()));
+    assert_eq!(parse_file("         "), Ok(Vec::new()));
+    assert_eq!(parse_file("       \n  "), Ok(Vec::new()));
+    assert_eq!(parse_file("       \n  ;   \n"), Ok(Vec::new()));
+}
+
+#[test]
+fn multiple_instructions() {
+    assert_eq!(parse_file("\n CLEAR \n"), Ok(vec![Instruction::Clear(0)]));
+    assert_eq!(
+        parse_file("CLEAR \n ADD 15 \n STORE 0\nSTOP "),
+        Ok(vec![
+            Instruction::Clear(0),
+            Instruction::Add(15),
+            Instruction::Store(0),
+            Instruction::Clear(1),
+        ])
     );
 }

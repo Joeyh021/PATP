@@ -4,6 +4,7 @@ use std::{fs, path::Path};
 
 mod assembler;
 mod emulator;
+mod instruction;
 mod parser;
 
 fn main() -> Result<()> {
