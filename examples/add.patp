@@ -6,13 +6,13 @@ CLEAR ; puts the numbers 15 and 7 in memory at 30 and 31
 
 ; adds the numbers at 0 and 1, stores in accumulator
 ; increments 0x0 0x1 times
-LOAD 0 ;load whatever is at 0
+loop: LOAD 0 ;load whatever is at 0
 INC ; increment it
 STORE 0; store back at 0
 LOAD 1; load our counter from 1
 DEC 
 STORE 1
-BNZ 5 ; branch back to the top of this loop
+BNZ loop ; branch back to the top of this loop
 
 LOAD 31 
 

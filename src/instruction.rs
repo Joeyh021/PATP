@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::cpu::Error;
+use crate::cpu::CPUError;
 //the type to represent instructions
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Instruction {
@@ -23,7 +23,7 @@ impl Display for Instruction {
             Instruction::Inc => write!(f, "INC"),
             Instruction::Add(x) => write!(f, "ADD {}", x),
             Instruction::Dec => write!(f, "DEC"),
-            Instruction::Jump(x) => write!(f, "JMP {}", x),
+            Instruction::Jump(x) => write!(f, "JUMP {}", x),
             Instruction::Bnz(x) => write!(f, "BNX {}", x),
             Instruction::Load(x) => write!(f, "LOAD {}", x),
             Instruction::Store(x) => write!(f, "STORE {}", x),
@@ -33,7 +33,7 @@ impl Display for Instruction {
 //methods to convert from/to our enum format
 //STOP is represented internally as a CLEAR with a non-zero operand
 impl Instruction {
-    pub fn assemble(&self) -> Result<u8, Error> {
+    pub fn assemble(&self) -> Result<u8, CPUError> {
         match self {
             Instruction::Clear(op) => Ok(*op),
             Instruction::Inc => Ok(0b0010_0000),
@@ -43,7 +43,7 @@ impl Instruction {
             Instruction::Bnz(op) if *op < 32 => Ok(0b1010_0000 | *op),
             Instruction::Load(op) if *op < 32 => Ok(0b1100_0000 | *op),
             Instruction::Store(op) if *op < 32 => Ok(0b1110_0000 | *op),
-            _ => Err(Error::AssemblyError(*self)),
+            _ => Err(CPUError::AssemblyError(*self)),
         }
     }
 
@@ -95,7 +95,7 @@ mod test {
         // should Err
         assert_eq!(
             Instruction::Add(68).assemble(),
-            Err(Error::AssemblyError(Instruction::Add(68)))
+            Err(CPUError::AssemblyError(Instruction::Add(68)))
         );
     }
 }

@@ -4,9 +4,10 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::Result;
-use cpu::Cpu;
-use instruction::Instruction;
-use parser::parse_file;
+//expose some bits that may be useful
+pub use cpu::Cpu;
+pub use instruction::Instruction;
+pub use parser::parse_file;
 
 mod cpu;
 mod instruction;
@@ -50,13 +51,15 @@ pub fn run_file(path: impl AsRef<Path>) -> Result<()> {
     Ok(())
 }
 
-pub fn assemble_instructions(instructions: &[Instruction]) -> Result<Vec<u8>, cpu::Error> {
+//takes a list of instructions and assembles them, returning a vec of bytes
+pub fn assemble_instructions(instructions: &[Instruction]) -> Result<Vec<u8>, cpu::CPUError> {
     instructions
         .iter()
         .map(|i| (*i).assemble())
         .collect::<Result<Vec<u8>, _>>()
 }
 
+//takes a program as a list of bytes and executes it, returning the final CPU state
 pub fn execute_program(program: &[u8]) -> Result<Cpu> {
     let mut state = Cpu::new().load(program)?;
     loop {
@@ -64,7 +67,7 @@ pub fn execute_program(program: &[u8]) -> Result<Cpu> {
         let new_state = state.execute(instruction);
         match new_state {
             Ok(new_state) => state = new_state,
-            Err(cpu::Error::Stop(end_state)) => return Ok(end_state),
+            Err(cpu::CPUError::Stop(end_state)) => return Ok(end_state),
             _ => unreachable!(),
         }
     }

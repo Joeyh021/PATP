@@ -15,7 +15,7 @@ pub struct Cpu {
 
 //errors that may occur during CPU execution
 #[derive(Debug, Error, PartialEq)]
-pub enum Error {
+pub enum CPUError {
     #[error("Program is too large to load into memory")]
     ProgramTooLarge,
     #[error("Could not assemble instruction{0}: operand is out of bounds (greater than 32)")]
@@ -23,16 +23,6 @@ pub enum Error {
 
     #[error("CPU has finished execution")]
     Stop(Cpu),
-}
-
-impl fmt::Display for Cpu {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "Program Counter: {} \nRegister: {} \nZ flag: {} \nMemory: {:?}",
-            self.pc, self.register, self.z as i32, self.memory
-        )
-    }
 }
 
 impl Cpu {
@@ -49,14 +39,14 @@ impl Cpu {
 
     //executes a single instruction
     //consumes self and returns Ok(new state), or returns finishing state wrapped in an error if a STOP is hit
-    pub fn execute(mut self, instruction: Instruction) -> Result<Cpu, Error> {
+    pub fn execute(mut self, instruction: Instruction) -> Result<Cpu, CPUError> {
         match instruction {
             Instruction::Clear(0) => {
                 self.register = 0;
                 self.z = true;
             }
             Instruction::Clear(_) => {
-                return Err(Error::Stop(self));
+                return Err(CPUError::Stop(self));
             }
             Instruction::Inc => {
                 self.register = u8::wrapping_add(self.register, 1);
@@ -92,12 +82,22 @@ impl Cpu {
     }
 
     //takes a CPU and loads a program into it's memory
-    pub fn load(mut self, program: &[u8]) -> Result<Cpu, Error> {
+    pub fn load(mut self, program: &[u8]) -> Result<Cpu, CPUError> {
         if program.len() > 32 {
-            Err(Error::ProgramTooLarge)
+            Err(CPUError::ProgramTooLarge)
         } else {
             self.memory[..program.len()].copy_from_slice(program);
             Ok(self)
         }
+    }
+}
+
+impl fmt::Display for Cpu {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Program Counter: {} \nRegister: {} \nZ flag: {} \nMemory: {:?}",
+            self.pc, self.register, self.z as i32, self.memory
+        )
     }
 }

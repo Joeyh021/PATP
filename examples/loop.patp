@@ -1,5 +1,5 @@
 CLEAR
-ADD 8
+loop: ADD 8
 DEC
-BUZ 1
+BUZ loop
 STOP
