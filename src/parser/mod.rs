@@ -1,8 +1,5 @@
 use std::collections::HashMap;
 
-use crate::emulator::Instruction;
-
-mod test;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -12,6 +9,10 @@ use nom::{
     sequence::{pair, preceded, separated_pair, terminated},
     IResult,
 };
+
+use crate::instruction::Instruction;
+
+mod test;
 
 // lines have format label: opcode operand; comment
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]

@@ -1,7 +1,8 @@
-use crate::emulator::CPUError;
 use std::fmt::Display;
+
+use crate::cpu::Error;
 //the type to represent instructions
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Instruction {
     Clear(u8), //000
     Inc,       //001
@@ -32,17 +33,17 @@ impl Display for Instruction {
 //methods to convert from/to our enum format
 //STOP is represented internally as a CLEAR with a non-zero operand
 impl Instruction {
-    pub fn assemble(self) -> Result<u8, CPUError> {
+    pub fn assemble(&self) -> Result<u8, Error> {
         match self {
-            Instruction::Clear(op) => Ok(op),
+            Instruction::Clear(op) => Ok(*op),
             Instruction::Inc => Ok(0b0010_0000),
-            Instruction::Add(op) if op < 32 => Ok(0b0100_0000 | op),
+            Instruction::Add(op) if *op < 32 => Ok(0b0100_0000 | *op),
             Instruction::Dec => Ok(0b0110_0000),
-            Instruction::Jump(op) if op < 32 => Ok(0b1000_0000 | op),
-            Instruction::Bnz(op) if op < 32 => Ok(0b1010_0000 | op),
-            Instruction::Load(op) if op < 32 => Ok(0b1100_0000 | op),
-            Instruction::Store(op) if op < 32 => Ok(0b1110_0000 | op),
-            _ => Err(CPUError::AssemblyError(self)),
+            Instruction::Jump(op) if *op < 32 => Ok(0b1000_0000 | *op),
+            Instruction::Bnz(op) if *op < 32 => Ok(0b1010_0000 | *op),
+            Instruction::Load(op) if *op < 32 => Ok(0b1100_0000 | *op),
+            Instruction::Store(op) if *op < 32 => Ok(0b1110_0000 | *op),
+            _ => Err(Error::AssemblyError(*self)),
         }
     }
 
@@ -58,7 +59,7 @@ impl Instruction {
             0b101 => Self::Bnz(operand),
             0b110 => Self::Load(operand),
             0b111 => Self::Store(operand),
-            _ => panic!("This shouldn't happen due to the bit masking we've got going on"),
+            _ => unreachable!("This shouldn't happen due to the bit masking we've got going on"),
         }
     }
 }
@@ -94,7 +95,7 @@ mod test {
         // should Err
         assert_eq!(
             Instruction::Add(68).assemble(),
-            Err(CPUError::AssemblyError(Instruction::Add(68)))
+            Err(Error::AssemblyError(Instruction::Add(68)))
         );
     }
 }
